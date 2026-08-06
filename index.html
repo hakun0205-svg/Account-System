@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyApp</title>
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+    window.__supabaseCreateClient = createClient;
+    window.dispatchEvent(new Event('supabase-ready'));
+  </script>
+  <style>
+    :root {
+      --bg:      #0f0f13;
+      --surface: #18181f;
+      --border:  #2a2a36;
+      --accent:  #7c6cfc;
+      --accent-h:#9b8eff;
+      --text:    #e8e8f0;
+      --muted:   #8888a0;
+      --danger:  #f25f5c;
+      --success: #56cfad;
+      --radius:  12px;
+      --font:    'Inter', system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--font); min-height: 100vh;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 24px;
+    }
+    /* ── カード ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); width: 100%; max-width: 460px;
+      padding: 36px 32px;
+    }
+    /* ── ロゴ ── */
+    .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+    .logo-mark {
+      width: 34px; height: 34px; background: var(--accent);
+      border-radius: 8px; display: grid; place-items: center;
+      font-size: 17px; font-weight: 700; color: #fff;
+    }
+    .logo-name { font-size: 17px; font-weight: 600; }
+    /* ── 認証タブ ── */
+    .auth-tabs {
+      display: flex; gap: 4px; background: var(--bg);
+      border-radius: 8px; padding: 4px; margin-bottom: 24px;
+    }
+    .auth-tab {
+      flex: 1; padding: 8px; border: none; border-radius: 6px;
+      background: transparent; color: var(--muted);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: background .15s, color .15s; font-family: var(--font);
+    }
+    .auth-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+    /* ── フォーム ── */
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .6px; text-transform: uppercase; margin-bottom: 6px; }
+    input[type=email], input[type=password] {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 13px; font-size: 14px;
+      color: var(--text); outline: none; transition: border-color .15s; font-family: var(--font);
+    }
+    input:focus { border-color: var(--accent); }
+    input::placeholder { color: var(--muted); }
+    /* ── ボタン ── */
+    .btn {
+      width: 100%; padding: 11px; border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: opacity .15s, transform .1s; font-family: var(--font);
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover:not(:disabled) { opacity: .88; }
+    .btn-ghost { background: var(--border); color: var(--text); margin-top: 8px; }
+    .btn-ghost:hover { opacity: .8; }
+    /* ── GitHub ── */
+    .divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: var(--muted); font-size: 12px; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .btn-github {
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+      background: #24292e; color: #fff; border: 1px solid #444d56;
+    }
+    .btn-github:hover:not(:disabled) { background: #2f363d; }
+    /* ── メッセージ ── */
+    .msg { font-size: 13px; padding: 10px 13px; border-radius: 8px; margin-bottom: 16px; display: none; }
+    .msg.error   { background: rgba(242,95,92,.12); color: var(--danger); border: 1px solid rgba(242,95,92,.3); }
+    .msg.success { background: rgba(86,207,173,.12); color: var(--success); border: 1px solid rgba(86,207,173,.3); }
+    .msg.show { display: block; }
+    /* ── 設定案内 ── */
+    .config-notice { background: var(--bg); border: 1px dashed var(--border); border-radius: 10px; padding: 18px; margin-bottom: 24px; }
+    .config-notice h3 { font-size: 13px; margin-bottom: 8px; color: var(--accent-h); }
+    .config-notice code { display: block; font-family: 'Menlo',monospace; font-size: 11px; color: var(--muted); background: #0a0a10; border-radius: 6px; padding: 10px; margin-top: 6px; line-height: 1.7; }
+    /* ── ダッシュボード上部 ── */
+    .dash-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .user-chip { display: flex; align-items: center; gap: 7px; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 5px 11px 5px 7px; font-size: 12px; }
+    .avatar { width: 24px; height: 24px; background: var(--accent); border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    /* ── ページナビ ── */
+    .page-nav { display: flex; gap: 2px; background: var(--bg); border-radius: 9px; padding: 3px; margin-bottom: 20px; }
+    .page-btn { flex: 1; padding: 8px 4px; border: none; border-radius: 7px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s, color .15s; font-family: var(--font); display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .page-btn .pbi { font-size: 16px; }
+    .page-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+    /* ── セクションタイトル ── */
+    .sec { font-size: 11px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px; }
+    /* ── ホーム: info grid ── */
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
+    .info-tile { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 13px; }
+    .info-tile .tl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+    .info-tile .tv { font-size: 13px; font-weight: 500; word-break: break-all; }
+    /* ── ポイント ── */
+    .pts-hero { background: linear-gradient(135deg,#3d2fa0,#7c6cfc); border-radius: 12px; padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .pts-hero .ph-label { font-size: 10px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .5px; }
+    .pts-hero .ph-value { font-size: 36px; font-weight: 800; color: #fff; letter-spacing: -1px; }
+    .pts-hero .ph-sub   { font-size: 11px; color: rgba(255,255,255,.55); }
+    .pts-hero .ph-icon  { font-size: 38px; }
+    @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
+    .pts-pop { animation: pop .3s ease; }
+    .checkin-btn { width: 100%; padding: 11px; border: 1px solid rgba(124,108,252,.3); border-radius: 8px; background: rgba(124,108,252,.12); color: var(--accent-h); font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; font-family: var(--font); display: flex; align-items: center; justify-content: center; gap: 7px; margin-bottom: 10px; }
+    .checkin-btn:hover:not(:disabled) { background: rgba(124,108,252,.22); }
+    .checkin-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .checkin-done { padding: 11px; border-radius: 8px; background: rgba(86,207,173,.08); color: var(--success); border: 1px solid rgba(86,207,173,.2); font-size: 13px; text-align: center; margin-bottom: 10px; }
+    .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+    .action-btn { padding: 10px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 11px; font-weight: 600; cursor: pointer; font-family: var(--font); display: flex; flex-direction: column; align-items: center; gap: 3px; transition: background .15s; }
+    .action-btn:hover:not(:disabled) { background: var(--border); }
+    .action-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .ab-pts { font-size: 14px; font-weight: 800; }
+    .ab-pts.earn { color: var(--success); }
+    .ab-pts.spend { color: var(--danger); }
+    /* ── ポイント履歴 ── */
+    .log-list { display: flex; flex-direction: column; gap: 7px; }
+    .log-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; }
+    .log-left { display: flex; align-items: center; gap: 9px; }
+    .log-reason { font-size: 12px; font-weight: 500; }
+    .log-date   { font-size: 10px; color: var(--muted); margin-top: 1px; }
+    .log-amt { font-size: 13px; font-weight: 700; }
+    .log-amt.plus { color: var(--success); }
+    .log-amt.minus { color: var(--danger); }
+    .log-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 14px 0; }
+    /* ── 掲示板 ── */
+    .post-compose { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+    .post-compose textarea {
+      width: 100%; background: transparent; border: none; outline: none;
+      color: var(--text); font-size: 14px; font-family: var(--font);
+      resize: none; line-height: 1.5; min-height: 70px;
+    }
+    .post-compose textarea::placeholder { color: var(--muted); }
+    .compose-footer { display: flex; justify-content: flex-end; margin-top: 10px; }
+    .post-submit { padding: 7px 18px; border: none; border-radius: 7px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: opacity .15s; }
+    .post-submit:hover:not(:disabled) { opacity: .85; }
+    .post-submit:disabled { opacity: .5; cursor: not-allowed; }
+    .post-list { display: flex; flex-direction: column; gap: 10px; }
+    .post-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    .post-header { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+    .post-avatar { width: 28px; height: 28px; background: var(--accent); border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .post-meta { flex: 1; }
+    .post-author { font-size: 12px; font-weight: 600; }
+    .post-time   { font-size: 10px; color: var(--muted); }
+    .post-body   { font-size: 13px; line-height: 1.6; margin-bottom: 10px; word-break: break-word; }
+    .post-footer { display: flex; gap: 8px; align-items: center; }
+    .like-btn, .del-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; font-size: 12px; cursor: pointer; font-family: var(--font); color: var(--muted); transition: background .15s, color .15s; }
+    .like-btn:hover { background: rgba(124,108,252,.15); color: var(--accent-h); border-color: rgba(124,108,252,.4); }
+    .like-btn.liked { background: rgba(124,108,252,.18); color: var(--accent-h); border-color: rgba(124,108,252,.5); }
+    .del-btn:hover  { background: rgba(242,95,92,.12); color: var(--danger); border-color: rgba(242,95,92,.3); }
+    .board-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 24px 0; }
+    /* ── チャット ── */
+    .chat-window {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      height: 300px; overflow-y: auto; padding: 12px; display: flex;
+      flex-direction: column; gap: 8px; margin-bottom: 10px;
+    }
+    .chat-window::-webkit-scrollbar { width: 4px; }
+    .chat-window::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .chat-msg { display: flex; gap: 8px; align-items: flex-end; }
+    .chat-msg.mine { flex-direction: row-reverse; }
+    .chat-av { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .chat-bubble { max-width: 72%; padding: 8px 12px; border-radius: 14px; font-size: 13px; line-height: 1.45; word-break: break-word; }
+    .chat-msg:not(.mine) .chat-bubble { background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .chat-msg.mine .chat-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+    .chat-name { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+    .chat-msg.mine .chat-name { text-align: right; }
+    .chat-ts { font-size: 9px; color: var(--muted); margin-bottom: 4px; flex-shrink: 0; }
+    .chat-compose { display: flex; gap: 8px; }
+    .chat-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--text); outline: none; font-family: var(--font); transition: border-color .15s; }
+    .chat-input:focus { border-color: var(--accent); }
+    .chat-input::placeholder { color: var(--muted); }
+    .chat-send { padding: 10px 16px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: opacity .15s; flex-shrink: 0; }
+    .chat-send:hover:not(:disabled) { opacity: .85; }
+    .chat-send:disabled { opacity: .5; cursor: not-allowed; }
+    .chat-empty { color: var(--muted); font-size: 12px; text-align: center; margin: auto; }
+    .online-dot { width: 7px; height: 7px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 5px; }
+    /* ── スピナー ── */
+    .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 5px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* ── ページ切り替え ── */
+    .page { display: none; }
+    .page.active { display: block; }
+    @media (max-width: 480px) {
+      .card { padding: 24px 18px; }
+      .info-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════ 認証カード ════ -->
+<div class="card" id="auth-card">
+  <div class="config-notice" id="setup-notice">
+    <h3>⚙️ セットアップ手順</h3>
+    下記2箇所をあなたの値に書き換えてください：
+    <code>const SUPABASE_URL = 'https://xxxx.supabase.co'<br>const SUPABASE_ANON_KEY = 'eyJh...'</code>
+  </div>
+  <div class="logo">
+    <div class="logo-mark">M</div>
+    <span class="logo-name">MyApp</span>
+  </div>
+  <div class="auth-tabs">
+    <button class="auth-tab active" type="button" onclick="switchAuthTab('login')">ログイン</button>
+    <button class="auth-tab"        type="button" onclick="switchAuthTab('signup')">新規登録</button>
+  </div>
+  <div id="msg" class="msg" role="alert"></div>
+
+  <!-- ログイン -->
+  <form id="login-form" onsubmit="handleLogin(event)" novalidate>
+    <div class="form-group"><label>メールアドレス</label><input type="email" id="login-email" autocomplete="email" placeholder="you@example.com" required /></div>
+    <div class="form-group"><label>パスワード</label><input type="password" id="login-password" autocomplete="current-password" placeholder="••••••••" required /></div>
+    <button type="submit" class="btn btn-primary" id="login-btn">ログイン</button>
+    <div class="divider">または</div>
+    <button type="button" class="btn btn-github" id="github-btn-login" onclick="handleGitHub()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHubでログイン
+    </button>
+  </form>
+
+  <!-- サインアップ -->
+  <form id="signup-form" onsubmit="handleSignup(event)" novalidate style="display:none">
+    <div class="form-group"><label>メールアドレス</label><input type="email" id="signup-email" autocomplete="email" placeholder="you@example.com" required /></div>
+    <div class="form-group"><label>パスワード（6文字以上）</label><input type="password" id="signup-password" autocomplete="new-password" placeholder="••••••••" required /></div>
+    <div class="form-group"><label>パスワード確認</label><input type="password" id="signup-password2" autocomplete="new-password" placeholder="••••••••" required /></div>
+    <button type="submit" class="btn btn-primary" id="signup-btn">アカウント作成</button>
+    <div class="divider">または</div>
+    <button type="button" class="btn btn-github" id="github-btn-signup" onclick="handleGitHub()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHubで登録
+    </button>
+  </form>
+</div>
+
+<!-- ════ ダッシュボード ════ -->
+<div class="card" id="dashboard" style="display:none">
+
+  <!-- 上部ヘッダー -->
+  <div class="dash-top">
+    <div class="logo" style="margin-bottom:0">
+      <div class="logo-mark">M</div>
+      <span class="logo-name">MyApp</span>
+    </div>
+    <div class="user-chip">
+      <div class="avatar" id="dash-avatar">?</div>
+      <span id="dash-email-short"></span>
+    </div>
+  </div>
+
+  <!-- ページナビ -->
+  <div class="page-nav">
+    <button class="page-btn active" type="button" onclick="switchPage('home')"><span class="pbi">🏠</span>ホーム</button>
+    <button class="page-btn"        type="button" onclick="switchPage('board')"><span class="pbi">📌</span>掲示板</button>
+    <button class="page-btn"        type="button" onclick="switchPage('chat')"><span class="pbi">💬</span>チャット</button>
+  </div>
+
+  <!-- ── ホームページ ── -->
+  <div id="page-home" class="page active">
+    <div class="sec">👤 アカウント情報</div>
+    <div class="info-grid">
+      <div class="info-tile"><div class="tl">メール</div><div class="tv" id="dash-email">—</div></div>
+      <div class="info-tile"><div class="tl">ユーザーID</div><div class="tv" id="dash-uid">—</div></div>
+      <div class="info-tile"><div class="tl">最終ログイン</div><div class="tv" id="dash-lastlogin">—</div></div>
+      <div class="info-tile"><div class="tl">認証方法</div><div class="tv" id="dash-provider">—</div></div>
+    </div>
+    <div class="sec">🪙 ポイント</div>
+    <div class="pts-hero">
+      <div>
+        <div class="ph-label">保有ポイント</div>
+        <div class="ph-value" id="pts-value">—</div>
+        <div class="ph-sub" id="pts-rank">読み込み中…</div>
+      </div>
+      <div class="ph-icon">🏆</div>
+    </div>
+    <div id="checkin-wrap">
+      <button type="button" class="checkin-btn" id="checkin-btn" onclick="handleCheckin()">📅 デイリーチェックイン（+10 pt）</button>
+    </div>
+    <div class="sec">⚡ アクション</div>
+    <div class="action-row">
+      <button type="button" class="action-btn" onclick="addPoints(20,'クエスト完了')"><span class="ab-pts earn">+20</span>クエスト完了</button>
+      <button type="button" class="action-btn" onclick="addPoints(50,'ボーナス')"><span class="ab-pts earn">+50</span>ボーナス獲得</button>
+      <button type="button" class="action-btn" onclick="addPoints(-30,'アイテム購入')"><span class="ab-pts spend">-30</span>アイテム購入</button>
+      <button type="button" class="action-btn" onclick="addPoints(-100,'プレミアム')"><span class="ab-pts spend">-100</span>プレミアム</button>
+    </div>
+    <div class="sec">📋 ポイント履歴</div>
+    <div class="log-list" id="log-list"><div class="log-empty">読み込み中…</div></div>
+    <div style="height:16px"></div>
+    <button type="button" class="btn btn-ghost" onclick="handleLogout()">ログアウト</button>
+  </div>
+
+  <!-- ── 掲示板ページ ── -->
+  <div id="page-board" class="page">
+    <div class="post-compose">
+      <textarea id="post-input" placeholder="みんなに共有したいことを書いてみよう…" maxlength="400"></textarea>
+      <div class="compose-footer">
+        <button type="button" class="post-submit" id="post-submit-btn" onclick="submitPost()">投稿する</button>
+      </div>
+    </div>
+    <div class="post-list" id="post-list"><div class="board-empty">読み込み中…</div></div>
+  </div>
+
+  <!-- ── チャットページ ── -->
+  <div id="page-chat" class="page">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:12px;color:var(--muted)">
+      <span class="online-dot"></span>リアルタイム チャット
+    </div>
+    <div class="chat-window" id="chat-window">
+      <div class="chat-empty">メッセージを読み込み中…</div>
+    </div>
+    <div class="chat-compose">
+      <input type="text" class="chat-input" id="chat-input" placeholder="メッセージを入力…" maxlength="200" />
+      <button type="button" class="chat-send" id="chat-send" onclick="sendMessage()">送信</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ════ 設定 ════ */
+const SUPABASE_URL      = 'https://vnczqksvnkanymagrxbf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuY3pxa3N2bmthbnltYWdyeGJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5MDg4MjgsImV4cCI6MjEwMTQ4NDgyOH0.2QFKJshh6Izg0Ch6FbZzNVHlz_-X6hygkITQ79MtmqI';
+
+/* ════ ストレージフォールバック ════ */
+const safeStorage = {
+  _mem: {},
+  getItem(k)    { try { return localStorage.getItem(k); } catch { return this._mem[k] ?? null; } },
+  setItem(k, v) { try { localStorage.setItem(k, v); } catch { this._mem[k] = v; } try { sessionStorage.setItem(k, v); } catch {} },
+  removeItem(k) { try { localStorage.removeItem(k); } catch {} try { sessionStorage.removeItem(k); } catch {} delete this._mem[k]; }
+};
+
+/* ════ Supabase 初期化 ════ */
+let sb;
+function initSupabase() {
+  const createClient = window.__supabaseCreateClient;
+  if (!createClient) return;
+  sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { storage: safeStorage, persistSession: true, autoRefreshToken: true } });
+  if (SUPABASE_URL.includes('your-project')) { document.getElementById('setup-notice').style.display = 'block'; return; }
+  document.getElementById('setup-notice').style.display = 'none';
+  sb.auth.getSession().then(({ data: { session } }) => { if (session) showDashboard(session.user); });
+  sb.auth.onAuthStateChange((_e, session) => { if (session) showDashboard(session.user); else showAuth(); });
+}
+window.addEventListener('supabase-ready', initSupabase);
+if (window.__supabaseCreateClient) initSupabase();
+
+/* ════ 認証タブ切り替え ════ */
+function switchAuthTab(tab) {
+  clearMsg();
+  document.querySelectorAll('.auth-tab').forEach((b, i) => b.classList.toggle('active', tab === 'login' ? i === 0 : i === 1));
+  document.getElementById('login-form').style.display  = tab === 'login'  ? '' : 'none';
+  document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
+}
+
+/* ════ ログイン ════ */
+async function handleLogin(e) {
+  e.preventDefault();
+  if (!sb) return showMsg('Supabaseが初期化されていません', 'error');
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-password').value;
+  if (!email || !pw) return showMsg('メールとパスワードを入力してください', 'error');
+  setLoading('login-btn', true, 'ログイン');
+  const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+  setLoading('login-btn', false, 'ログイン');
+  if (error) showMsg(te(error.message), 'error');
+}
+
+/* ════ サインアップ ════ */
+async function handleSignup(e) {
+  e.preventDefault();
+  if (!sb) return showMsg('Supabaseが初期化されていません', 'error');
+  const email = document.getElementById('signup-email').value.trim();
+  const pw    = document.getElementById('signup-password').value;
+  const pw2   = document.getElementById('signup-password2').value;
+  if (!email || !pw) return showMsg('メールとパスワードを入力してください', 'error');
+  if (pw !== pw2)    return showMsg('パスワードが一致しません', 'error');
+  if (pw.length < 6) return showMsg('パスワードは6文字以上にしてください', 'error');
+  setLoading('signup-btn', true, 'アカウント作成');
+  const { error } = await sb.auth.signUp({ email, password: pw });
+  setLoading('signup-btn', false, 'アカウント作成');
+  if (error) showMsg(te(error.message), 'error');
+  else showMsg('確認メールを送信しました。メールのリンクをクリックしてください。', 'success');
+}
+
+/* ════ GitHub ════ */
+async function handleGitHub() {
+  if (!sb) return showMsg('Supabaseが初期化されていません', 'error');
+  ['github-btn-login','github-btn-signup'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) { b.disabled = true; b.innerHTML = '<span class="spinner"></span>リダイレクト中…'; }
+  });
+  const { error } = await sb.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: window.location.href } });
+  if (error) {
+    showMsg(te(error.message), 'error');
+    ['github-btn-login','github-btn-signup'].forEach(id => {
+      const b = document.getElementById(id); if (b) { b.disabled = false; b.textContent = 'GitHubでログイン'; }
+    });
+  }
+}
+
+/* ════ ログアウト ════ */
+async function handleLogout() {
+  if (chatChannel) { await sb.removeChannel(chatChannel); chatChannel = null; }
+  if (sb) await sb.auth.signOut();
+}
+
+/* ════ UI: ダッシュボード表示 ════ */
+let currentUserId = null, currentUserEmail = '';
+
+function showDashboard(user) {
+  document.getElementById('auth-card').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  currentUserId    = user.id;
+  currentUserEmail = user.email || 'Unknown';
+  const short = currentUserEmail.split('@')[0];
+  document.getElementById('dash-email').textContent       = currentUserEmail;
+  document.getElementById('dash-uid').textContent         = (user.id || '').slice(0, 8) + '…';
+  document.getElementById('dash-email-short').textContent = short;
+  document.getElementById('dash-avatar').textContent      = short[0]?.toUpperCase() || '?';
+  document.getElementById('dash-provider').textContent    = user.app_metadata?.provider || 'email';
+  const last = user.last_sign_in_at;
+  document.getElementById('dash-lastlogin').textContent   = last ? new Date(last).toLocaleString('ja-JP',{dateStyle:'short',timeStyle:'short'}) : '—';
+  loadPoints(); loadHistory(); checkCheckin();
+}
+function showAuth() {
+  if (chatChannel) { sb.removeChannel(chatChannel); chatChannel = null; }
+  document.getElementById('auth-card').style.display = '';
+  document.getElementById('dashboard').style.display = 'none';
+  clearMsg();
+}
+
+/* ════ ページナビ ════ */
+function switchPage(page) {
+  document.querySelectorAll('.page-btn').forEach((b, i) => b.classList.toggle('active', ['home','board','chat'][i] === page));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (page === 'board') loadPosts();
+  if (page === 'chat')  initChat();
+}
+
+/* ════ ポイントシステム ════ */
+async function loadPoints() {
+  const { data } = await sb.from('profiles').select('points').eq('id', currentUserId).maybeSingle();
+  if (data === null) {
+    const { error: ie } = await sb.from('profiles').insert({ id: currentUserId, points: 0 });
+    if (ie) await sb.from('profiles').update({ points: 0 }).eq('id', currentUserId);
+    renderPoints(0);
+  } else { renderPoints(data?.points ?? 0); }
+}
+function renderPoints(pts) {
+  const el = document.getElementById('pts-value');
+  el.textContent = pts.toLocaleString();
+  el.classList.remove('pts-pop'); void el.offsetWidth; el.classList.add('pts-pop');
+  document.getElementById('pts-rank').textContent =
+    pts >= 10000 ? '🏅 ゴールド会員' : pts >= 3000 ? '🥈 シルバー会員' : pts >= 500 ? '🥉 ブロンズ会員' : '🌱 スターター';
+}
+async function addPoints(amount, reason) {
+  const { data } = await sb.from('profiles').select('points').eq('id', currentUserId).maybeSingle();
+  const next = Math.max(0, (data?.points ?? 0) + amount);
+  await sb.from('profiles').update({ points: next }).eq('id', currentUserId);
+  await sb.from('point_logs').insert({ user_id: currentUserId, amount, reason });
+  renderPoints(next); loadHistory();
+}
+async function handleCheckin() {
+  const btn = document.getElementById('checkin-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>処理中…';
+  await addPoints(10, 'デイリーチェックイン');
+  const today = new Date().toISOString().slice(0, 10);
+  await sb.from('profiles').update({ last_checkin: today }).eq('id', currentUserId);
+  document.getElementById('checkin-wrap').innerHTML = `<div class="checkin-done">✅ 本日のチェックイン完了！+10pt 獲得しました</div>`;
+}
+async function checkCheckin() {
+  const { data } = await sb.from('profiles').select('last_checkin').eq('id', currentUserId).maybeSingle();
+  if (data?.last_checkin === new Date().toISOString().slice(0, 10))
+    document.getElementById('checkin-wrap').innerHTML = `<div class="checkin-done">✅ 本日のチェックイン完了！明日また来てください</div>`;
+}
+async function loadHistory() {
+  const { data } = await sb.from('point_logs').select('amount,reason,created_at').eq('user_id', currentUserId).order('created_at',{ascending:false}).limit(10);
+  const list = document.getElementById('log-list');
+  if (!data || data.length === 0) { list.innerHTML = `<div class="log-empty">履歴がまだありません</div>`; return; }
+  list.innerHTML = data.map(r => {
+    const plus = r.amount >= 0;
+    const date = new Date(r.created_at).toLocaleString('ja-JP',{dateStyle:'short',timeStyle:'short'});
+    return `<div class="log-item"><div class="log-left"><span>${plus?'🟢':'🔴'}</span><div><div class="log-reason">${r.reason}</div><div class="log-date">${date}</div></div></div><div class="log-amt ${plus?'plus':'minus'}">${plus?'+':''}${r.amount} pt</div></div>`;
+  }).join('');
+}
+
+/* ════ 掲示板 ════ */
+async function loadPosts() {
+  document.getElementById('post-list').innerHTML = '<div class="board-empty">読み込み中…</div>';
+  const { data } = await sb.from('board_posts')
+    .select('id, user_id, user_email, content, created_at, board_likes(user_id)')
+    .order('created_at', { ascending: false }).limit(30);
+  renderPosts(data || []);
+}
+function renderPosts(posts) {
+  const list = document.getElementById('post-list');
+  if (posts.length === 0) { list.innerHTML = '<div class="board-empty">まだ投稿がありません。最初の投稿をしてみましょう！</div>'; return; }
+  list.innerHTML = posts.map(p => {
+    const short   = (p.user_email || 'user').split('@')[0];
+    const initial = short[0]?.toUpperCase() || '?';
+    const date    = new Date(p.created_at).toLocaleString('ja-JP',{dateStyle:'short',timeStyle:'short'});
+    const likes   = p.board_likes?.length ?? 0;
+    const liked   = p.board_likes?.some(l => l.user_id === currentUserId);
+    const isMine  = p.user_id === currentUserId;
+    return `
+      <div class="post-card" id="post-${p.id}">
+        <div class="post-header">
+          <div class="post-avatar">${initial}</div>
+          <div class="post-meta"><div class="post-author">${short}</div><div class="post-time">${date}</div></div>
+        </div>
+        <div class="post-body">${escHtml(p.content)}</div>
+        <div class="post-footer">
+          <button type="button" class="like-btn ${liked?'liked':''}" onclick="toggleLike('${p.id}', ${liked})">
+            ${liked?'♥':'♡'} ${likes}
+          </button>
+          ${isMine ? `<button type="button" class="del-btn" onclick="deletePost('${p.id}')">削除</button>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+async function submitPost() {
+  const ta  = document.getElementById('post-input');
+  const btn = document.getElementById('post-submit-btn');
+  const content = ta.value.trim();
+  if (!content) return;
+  btn.disabled = true; btn.textContent = '投稿中…';
+  const { error } = await sb.from('board_posts').insert({ user_id: currentUserId, user_email: currentUserEmail, content });
+  btn.disabled = false; btn.textContent = '投稿する';
+  if (!error) { ta.value = ''; loadPosts(); }
+}
+async function toggleLike(postId, isLiked) {
+  if (isLiked) {
+    await sb.from('board_likes').delete().eq('post_id', postId).eq('user_id', currentUserId);
+  } else {
+    await sb.from('board_likes').insert({ post_id: postId, user_id: currentUserId });
+  }
+  loadPosts();
+}
+async function deletePost(postId) {
+  if (!confirm('この投稿を削除しますか？')) return;
+  await sb.from('board_likes').delete().eq('post_id', postId);
+  await sb.from('board_posts').delete().eq('id', postId).eq('user_id', currentUserId);
+  loadPosts();
+}
+
+/* ════ チャット ════ */
+let chatChannel = null, chatMessages = [];
+
+async function initChat() {
+  if (chatChannel) return; // 既に購読中
+  // 過去50件を取得
+  const { data } = await sb.from('chat_messages')
+    .select('id, user_id, user_email, content, created_at')
+    .order('created_at', { ascending: true }).limit(50);
+  chatMessages = data || [];
+  renderChat();
+
+  // リアルタイム購読
+  chatChannel = sb.channel('chat-room')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, payload => {
+      chatMessages.push(payload.new);
+      renderChat();
+    })
+    .subscribe();
+}
+function renderChat() {
+  const win = document.getElementById('chat-window');
+  if (chatMessages.length === 0) {
+    win.innerHTML = '<div class="chat-empty">まだメッセージがありません</div>';
+    return;
+  }
+  win.innerHTML = chatMessages.map(m => {
+    const mine    = m.user_id === currentUserId;
+    const short   = (m.user_email || 'user').split('@')[0];
+    const initial = short[0]?.toUpperCase() || '?';
+    const time    = new Date(m.created_at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+    return `
+      <div class="chat-msg ${mine ? 'mine' : ''}">
+        ${!mine ? `<div class="chat-av">${initial}</div>` : ''}
+        <div>
+          <div class="chat-name">${mine ? '' : short}</div>
+          <div style="display:flex;align-items:flex-end;gap:5px;${mine?'flex-direction:row-reverse':''}">
+            <div class="chat-bubble">${escHtml(m.content)}</div>
+            <div class="chat-ts">${time}</div>
+          </div>
+        </div>
+        ${mine ? `<div class="chat-av">${initial}</div>` : ''}
+      </div>`;
+  }).join('');
+  win.scrollTop = win.scrollHeight;
+}
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const btn   = document.getElementById('chat-send');
+  const content = input.value.trim();
+  if (!content) return;
+  input.value = ''; btn.disabled = true;
+  await sb.from('chat_messages').insert({ user_id: currentUserId, user_email: currentUserEmail, content });
+  btn.disabled = false; input.focus();
+}
+// Enterキーで送信
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.activeElement.id === 'chat-input' && !e.shiftKey) {
+    e.preventDefault(); sendMessage();
+  }
+});
+
+/* ════ ヘルパー ════ */
+function showMsg(text, type) { const el = document.getElementById('msg'); el.textContent = text; el.className = `msg ${type} show`; }
+function clearMsg() { document.getElementById('msg').className = 'msg'; }
+function setLoading(id, loading, label) { const b = document.getElementById(id); b.disabled = loading; b.innerHTML = loading ? `<span class="spinner"></span>処理中…` : label; }
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>'); }
+function te(msg) {
+  if (msg.includes('Invalid login credentials'))  return 'メールアドレスまたはパスワードが正しくありません';
+  if (msg.includes('Email not confirmed'))         return 'メールアドレスが未確認です';
+  if (msg.includes('User already registered'))     return 'このメールアドレスはすでに登録されています';
+  if (msg.includes('Password should be'))          return 'パスワードは6文字以上にしてください';
+  if (msg.includes('Failed to fetch'))             return 'ネットワークエラーです。URLとキーを確認してください';
+  if (msg.includes('provider is not enabled'))     return 'GitHubログインが有効になっていません';
+  return msg;
+}
+</script>
+</body>
+</html>
