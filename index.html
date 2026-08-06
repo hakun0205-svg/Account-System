@@ -192,6 +192,34 @@
     .chat-send:disabled { opacity: .5; cursor: not-allowed; }
     .chat-empty { color: var(--muted); font-size: 12px; text-align: center; margin: auto; }
     .online-dot { width: 7px; height: 7px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 5px; }
+    /* ── 設定ページ ── */
+    .setting-group { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 15px; gap: 12px; }
+    .setting-row + .setting-row { border-top: 1px solid var(--border); }
+    .setting-row.col { flex-direction: column; align-items: stretch; gap: 10px; }
+    .setting-label { font-size: 13px; font-weight: 600; }
+    .setting-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .setting-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; font-size: 13px; color: var(--text); outline: none; font-family: var(--font); transition: border-color .15s; }
+    .setting-input:focus { border-color: var(--accent); }
+    .setting-input::placeholder { color: var(--muted); }
+    .setting-btn { padding: 7px 14px; border: none; border-radius: 7px; background: var(--accent); color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); white-space: nowrap; transition: opacity .15s; flex-shrink: 0; }
+    .setting-btn:hover:not(:disabled) { opacity: .85; }
+    .setting-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .setting-btn.ghost { background: var(--border); color: var(--text); }
+    /* アバターカラー */
+    .color-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+    .swatch { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: transform .15s, border-color .15s; }
+    .swatch:hover { transform: scale(1.15); }
+    .swatch.selected { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
+    /* 危険ゾーン */
+    .danger-zone { background: rgba(242,95,92,.06); border: 1px solid rgba(242,95,92,.25); border-radius: 10px; padding: 15px; margin-bottom: 10px; }
+    .danger-zone h4 { font-size: 12px; font-weight: 700; color: var(--danger); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 8px; }
+    .danger-zone p  { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+    .btn-danger { width: 100%; padding: 10px; border: 1px solid rgba(242,95,92,.4); border-radius: 8px; background: transparent; color: var(--danger); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background .15s; }
+    .btn-danger:hover { background: rgba(242,95,92,.1); }
+    /* トースト */
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1e1e2a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--text); box-shadow: 0 4px 20px rgba(0,0,0,.4); transition: transform .3s ease, opacity .3s ease; opacity: 0; pointer-events: none; white-space: nowrap; z-index: 999; }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     /* ── スピナー ── */
     .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 5px; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -269,6 +297,7 @@
     <button class="page-btn active" type="button" onclick="switchPage('home')"><span class="pbi">🏠</span>ホーム</button>
     <button class="page-btn"        type="button" onclick="switchPage('board')"><span class="pbi">📌</span>掲示板</button>
     <button class="page-btn"        type="button" onclick="switchPage('chat')"><span class="pbi">💬</span>チャット</button>
+    <button class="page-btn"        type="button" onclick="switchPage('settings')"><span class="pbi">⚙️</span>設定</button>
   </div>
 
   <!-- ── ホームページ ── -->
@@ -330,7 +359,84 @@
     </div>
   </div>
 
+  <!-- ── 設定ページ ── -->
+  <div id="page-settings" class="page">
+
+    <!-- プロフィール -->
+    <div class="sec">👤 プロフィール</div>
+    <div class="setting-group">
+      <div class="setting-row col">
+        <div><div class="setting-label">表示名</div><div class="setting-sub">掲示板・チャットで使われる名前</div></div>
+        <div style="display:flex;gap:8px">
+          <input type="text" class="setting-input" id="set-displayname" placeholder="例: たろう" maxlength="20" />
+          <button type="button" class="setting-btn" onclick="saveDisplayName()">保存</button>
+        </div>
+      </div>
+      <div class="setting-row col">
+        <div><div class="setting-label">アバターカラー</div><div class="setting-sub">アイコンの背景色</div></div>
+        <div class="color-swatches" id="color-swatches">
+          <div class="swatch" style="background:#7c6cfc" data-color="#7c6cfc" onclick="selectColor(this)"></div>
+          <div class="swatch" style="background:#f25f5c" data-color="#f25f5c" onclick="selectColor(this)"></div>
+          <div class="swatch" style="background:#56cfad" data-color="#56cfad" onclick="selectColor(this)"></div>
+          <div class="swatch" style="background:#f4a261" data-color="#f4a261" onclick="selectColor(this)"></div>
+          <div class="swatch" style="background:#4cc9f0" data-color="#4cc9f0" onclick="selectColor(this)"></div>
+          <div class="swatch" style="background:#e040fb" data-color="#e040fb" onclick="selectColor(this)"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- メールアドレス変更 -->
+    <div class="sec">📧 メールアドレス変更</div>
+    <div class="setting-group">
+      <div class="setting-row col">
+        <div><div class="setting-label">新しいメールアドレス</div><div class="setting-sub">確認メールが両方に送信されます</div></div>
+        <div style="display:flex;gap:8px">
+          <input type="email" class="setting-input" id="set-email" placeholder="new@example.com" />
+          <button type="button" class="setting-btn" onclick="changeEmail()">変更</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- パスワード変更 -->
+    <div class="sec">🔑 パスワード変更</div>
+    <div class="setting-group">
+      <div class="setting-row col">
+        <div><div class="setting-label">新しいパスワード</div><div class="setting-sub">6文字以上で入力してください</div></div>
+        <input type="password" class="setting-input" id="set-pw1" placeholder="新しいパスワード" autocomplete="new-password" />
+      </div>
+      <div class="setting-row col">
+        <div><div class="setting-label">パスワード確認</div></div>
+        <div style="display:flex;gap:8px">
+          <input type="password" class="setting-input" id="set-pw2" placeholder="もう一度入力" autocomplete="new-password" />
+          <button type="button" class="setting-btn" onclick="changePassword()">変更</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ログアウト -->
+    <div class="sec">🚪 セッション</div>
+    <div class="setting-group">
+      <div class="setting-row">
+        <div><div class="setting-label">ログアウト</div><div class="setting-sub">全デバイスでサインアウトします</div></div>
+        <button type="button" class="setting-btn ghost" onclick="handleLogout()">ログアウト</button>
+      </div>
+    </div>
+
+    <!-- 危険ゾーン -->
+    <div class="sec" style="color:var(--danger)">⚠️ 危険ゾーン</div>
+    <div class="danger-zone">
+      <h4>アカウントを削除</h4>
+      <p>この操作は取り消せません。ポイント・投稿・メッセージを含むすべてのデータが完全に削除されます。</p>
+      <button type="button" class="btn-danger" onclick="deleteAccount()">アカウントを完全に削除する</button>
+    </div>
+
+    <div style="height:8px"></div>
+  </div>
+
 </div>
+
+<!-- トースト -->
+<div id="toast"></div>
 
 <script>
 /* ════ 設定 ════ */
@@ -437,7 +543,7 @@ function showDashboard(user) {
   document.getElementById('dash-provider').textContent    = user.app_metadata?.provider || 'email';
   const last = user.last_sign_in_at;
   document.getElementById('dash-lastlogin').textContent   = last ? new Date(last).toLocaleString('ja-JP',{dateStyle:'short',timeStyle:'short'}) : '—';
-  loadPoints(); loadHistory(); checkCheckin();
+  loadPoints(); loadHistory(); checkCheckin(); applyAvatarColor();
 }
 function showAuth() {
   if (chatChannel) { sb.removeChannel(chatChannel); chatChannel = null; }
@@ -448,11 +554,12 @@ function showAuth() {
 
 /* ════ ページナビ ════ */
 function switchPage(page) {
-  document.querySelectorAll('.page-btn').forEach((b, i) => b.classList.toggle('active', ['home','board','chat'][i] === page));
+  document.querySelectorAll('.page-btn').forEach((b, i) => b.classList.toggle('active', ['home','board','chat','settings'][i] === page));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
-  if (page === 'board') loadPosts();
-  if (page === 'chat')  initChat();
+  if (page === 'board')    loadPosts();
+  if (page === 'chat')     initChat();
+  if (page === 'settings') loadSettings();
 }
 
 /* ════ ポイントシステム ════ */
@@ -623,7 +730,94 @@ document.addEventListener('keydown', e => {
   }
 });
 
+/* ════ アカウント設定 ════ */
+async function loadSettings() {
+  const { data } = await sb.from('profiles').select('display_name, avatar_color').eq('id', currentUserId).maybeSingle();
+  if (data?.display_name) document.getElementById('set-displayname').value = data.display_name;
+  if (data?.avatar_color) {
+    document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('selected', s.dataset.color === data.avatar_color));
+  }
+}
+
+async function applyAvatarColor() {
+  const { data } = await sb.from('profiles').select('display_name, avatar_color').eq('id', currentUserId).maybeSingle();
+  // 表示名があればアバター・掲示板・チャットに反映
+  const name = data?.display_name || currentUserEmail.split('@')[0];
+  document.getElementById('dash-avatar').textContent      = name[0]?.toUpperCase() || '?';
+  document.getElementById('dash-email-short').textContent = name;
+  if (data?.avatar_color) {
+    document.getElementById('dash-avatar').style.background = data.avatar_color;
+  }
+}
+
+async function saveDisplayName() {
+  const val = document.getElementById('set-displayname').value.trim();
+  if (!val) return showToast('⚠️ 表示名を入力してください');
+  const { error } = await sb.from('profiles').update({ display_name: val }).eq('id', currentUserId);
+  if (error) return showToast('❌ 保存に失敗しました');
+  showToast('✅ 表示名を保存しました');
+  applyAvatarColor();
+}
+
+async function selectColor(el) {
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  const color = el.dataset.color;
+  await sb.from('profiles').update({ avatar_color: color }).eq('id', currentUserId);
+  document.getElementById('dash-avatar').style.background = color;
+  showToast('✅ カラーを変更しました');
+}
+
+async function changeEmail() {
+  const email = document.getElementById('set-email').value.trim();
+  if (!email) return showToast('⚠️ 新しいメールアドレスを入力してください');
+  const { error } = await sb.auth.updateUser({ email });
+  if (error) return showToast('❌ ' + te(error.message));
+  showToast('✅ 確認メールを送信しました。両方のアドレスで確認してください');
+  document.getElementById('set-email').value = '';
+}
+
+async function changePassword() {
+  const pw1 = document.getElementById('set-pw1').value;
+  const pw2 = document.getElementById('set-pw2').value;
+  if (!pw1 || !pw2)  return showToast('⚠️ パスワードを入力してください');
+  if (pw1 !== pw2)   return showToast('⚠️ パスワードが一致しません');
+  if (pw1.length < 6) return showToast('⚠️ パスワードは6文字以上にしてください');
+  const { error } = await sb.auth.updateUser({ password: pw1 });
+  if (error) return showToast('❌ ' + te(error.message));
+  showToast('✅ パスワードを変更しました');
+  document.getElementById('set-pw1').value = '';
+  document.getElementById('set-pw2').value = '';
+}
+
+async function deleteAccount() {
+  const confirmed = prompt('アカウントを完全に削除します。\n確認のため「削除する」と入力してください：');
+  if (confirmed !== '削除する') return showToast('キャンセルしました');
+  // データ削除（RLS上ユーザー自身のデータのみ）
+  await sb.from('point_logs').delete().eq('user_id', currentUserId);
+  await sb.from('board_likes').delete().eq('user_id', currentUserId);
+  await sb.from('board_posts').delete().eq('user_id', currentUserId);
+  await sb.from('chat_messages').delete().eq('user_id', currentUserId);
+  await sb.from('profiles').delete().eq('id', currentUserId);
+  // Supabase Authのユーザー削除はサーバー側RPC経由
+  const { error } = await sb.rpc('delete_own_account');
+  if (error) {
+    // RPCがなくてもサインアウトしてデータは消去済み
+    showToast('データを削除しました。管理者に認証アカウントの削除を依頼してください。');
+    setTimeout(() => sb.auth.signOut(), 2000);
+    return;
+  }
+  await sb.auth.signOut();
+}
+
 /* ════ ヘルパー ════ */
+let toastTimer;
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
 function showMsg(text, type) { const el = document.getElementById('msg'); el.textContent = text; el.className = `msg ${type} show`; }
 function clearMsg() { document.getElementById('msg').className = 'msg'; }
 function setLoading(id, loading, label) { const b = document.getElementById(id); b.disabled = loading; b.innerHTML = loading ? `<span class="spinner"></span>処理中…` : label; }
