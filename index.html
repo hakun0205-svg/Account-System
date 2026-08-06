@@ -459,6 +459,7 @@
 
     <!-- パスワード変更 -->
     <div class="sec">🔑 パスワード変更</div>
+    <form onsubmit="changePassword(event)" novalidate>
     <div class="setting-group">
       <div class="setting-row col">
         <div><div class="setting-label">新しいパスワード</div><div class="setting-sub">6文字以上で入力してください</div></div>
@@ -468,10 +469,11 @@
         <div><div class="setting-label">パスワード確認</div></div>
         <div style="display:flex;gap:8px">
           <input type="password" class="setting-input" id="set-pw2" placeholder="もう一度入力" autocomplete="new-password" />
-          <button type="button" class="setting-btn" onclick="changePassword()">変更</button>
+          <button type="submit" class="setting-btn">変更</button>
         </div>
       </div>
     </div>
+    </form>
 
     <!-- ログアウト -->
     <div class="sec">🚪 セッション</div>
@@ -588,7 +590,7 @@ async function handleLogout() {
 }
 
 /* ════ UI: ダッシュボード表示 ════ */
-let currentUserId = null, currentUserEmail = '';
+let currentUserId = null, currentUserEmail = '', userPoints = 0;
 
 function showDashboard(user) {
   document.getElementById('auth-card').style.display = 'none';
@@ -633,6 +635,7 @@ async function loadPoints() {
   } else { renderPoints(data?.points ?? 0); }
 }
 function renderPoints(pts) {
+  userPoints = pts;
   const el = document.getElementById('pts-value');
   el.textContent = pts.toLocaleString();
   el.classList.remove('pts-pop'); void el.offsetWidth; el.classList.add('pts-pop');
@@ -838,7 +841,8 @@ async function changeEmail() {
   document.getElementById('set-email').value = '';
 }
 
-async function changePassword() {
+async function changePassword(e) {
+  if (e) e.preventDefault();
   const pw1 = document.getElementById('set-pw1').value;
   const pw2 = document.getElementById('set-pw2').value;
   if (!pw1 || !pw2)  return showToast('⚠️ パスワードを入力してください');
