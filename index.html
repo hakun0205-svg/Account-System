@@ -220,6 +220,24 @@
     /* トースト */
     #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1e1e2a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--text); box-shadow: 0 4px 20px rgba(0,0,0,.4); transition: transform .3s ease, opacity .3s ease; opacity: 0; pointer-events: none; white-space: nowrap; z-index: 999; }
     #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    /* ── ゲームページ ── */
+    .game-wrap { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 0 32px rgba(124,108,252,.1); }
+    #game-canvas { display: block; cursor: crosshair; touch-action: none; background: #0a0a10; }
+    .game-overlay { position: absolute; inset: 0; background: rgba(8,8,14,.93); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; }
+    .game-overlay h2 { font-size: 22px; font-weight: 800; }
+    .game-overlay p  { font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 240px; }
+    .big-gnum  { font-size: 52px; font-weight: 900; color: var(--accent); letter-spacing: -2px; line-height: 1; }
+    .earn-glabel { font-size: 14px; font-weight: 700; color: var(--success); }
+    .cost-glabel { font-size: 12px; color: var(--muted); }
+    .no-pts-warn { font-size: 12px; font-weight: 600; color: var(--danger); }
+    .btn-play-game { padding: 12px 30px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: opacity .15s; box-shadow: 0 4px 16px rgba(124,108,252,.35); }
+    .btn-play-game:hover:not(:disabled) { opacity: .88; }
+    .btn-play-game:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+    .btn-sub-game  { padding: 8px 18px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text); font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); }
+    .game-hud { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .hud-tile { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; text-align: center; }
+    .hud-tile .htl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .hud-tile .htv { font-size: 18px; font-weight: 800; margin-top: 2px; }
     /* ── スピナー ── */
     .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 5px; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -297,8 +315,8 @@
     <button class="page-btn active" type="button" onclick="switchPage('home')"><span class="pbi">🏠</span>ホーム</button>
     <button class="page-btn"        type="button" onclick="switchPage('board')"><span class="pbi">📌</span>掲示板</button>
     <button class="page-btn"        type="button" onclick="switchPage('chat')"><span class="pbi">💬</span>チャット</button>
+    <button class="page-btn"        type="button" onclick="switchPage('game')"><span class="pbi">🎮</span>ゲーム</button>
     <button class="page-btn"        type="button" onclick="switchPage('settings')"><span class="pbi">⚙️</span>設定</button>
-    <a href="game.html" style="...">🎮 バブルシューターで遊ぶ</a>
   </div>
 
   <!-- ── ホームページ ── -->
@@ -357,6 +375,47 @@
     <div class="chat-compose">
       <input type="text" class="chat-input" id="chat-input" placeholder="メッセージを入力…" maxlength="200" />
       <button type="button" class="chat-send" id="chat-send" onclick="sendMessage()">送信</button>
+    </div>
+  </div>
+
+  <!-- ── ゲームページ ── -->
+  <div id="page-game" class="page">
+    <div class="game-wrap">
+      <canvas id="game-canvas" width="388" height="520"></canvas>
+      <!-- スタート -->
+      <div class="game-overlay" id="gov-start">
+        <div style="font-size:48px">🫧</div>
+        <h2>バブルシューター</h2>
+        <p>同じ色を3つ以上つなげて消そう！<br>消すたびにポイント獲得。</p>
+        <div class="cost-glabel">開始コスト：<strong style="color:var(--text)">10 pt</strong></div>
+        <button type="button" class="btn-play-game" id="gbtn-start" onclick="gStartGame()">ゲームスタート</button>
+        <div class="no-pts-warn" id="g-nopt" style="display:none">⚠️ ポイントが足りません</div>
+      </div>
+      <!-- ゲームオーバー -->
+      <div class="game-overlay" id="gov-over" style="display:none">
+        <h2>💥 ゲームオーバー</h2>
+        <div class="big-gnum" id="g-final">0</div>
+        <div class="earn-glabel" id="g-earn">+0 pt 獲得！</div>
+        <p id="g-msg">次は頑張ろう！</p>
+        <button type="button" class="btn-play-game" id="gbtn-retry" onclick="gStartGame()">もう一度（-10pt）</button>
+        <button type="button" class="btn-sub-game" onclick="gShowStart()">タイトルへ</button>
+      </div>
+      <!-- クリア -->
+      <div class="game-overlay" id="gov-clear" style="display:none">
+        <div style="font-size:48px">🎉</div>
+        <h2>全消しクリア！</h2>
+        <div class="big-gnum" id="g-cscore">0</div>
+        <div class="earn-glabel" id="g-cearn">+0 pt 獲得！</div>
+        <p>全バブル消去ボーナス +50pt！</p>
+        <button type="button" class="btn-play-game" onclick="gStartGame()">次のゲーム（-10pt）</button>
+        <button type="button" class="btn-sub-game" onclick="gShowStart()">タイトルへ</button>
+      </div>
+    </div>
+    <!-- HUD -->
+    <div class="game-hud">
+      <div class="hud-tile"><div class="htl">スコア</div><div class="htv" id="g-hud-score">0</div></div>
+      <div class="hud-tile"><div class="htl">残バブル</div><div class="htv" id="g-hud-bub">—</div></div>
+      <div class="hud-tile"><div class="htl">次のバブル</div><div class="htv" id="g-hud-next">—</div></div>
     </div>
   </div>
 
@@ -441,8 +500,8 @@
 
 <script>
 /* ════ 設定 ════ */
-const SUPABASE_URL      = 'https://vnczqksvnkanymagrxbf.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuY3pxa3N2bmthbnltYWdyeGJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5MDg4MjgsImV4cCI6MjEwMTQ4NDgyOH0.2QFKJshh6Izg0Ch6FbZzNVHlz_-X6hygkITQ79MtmqI';
+const SUPABASE_URL      = 'https://your-project.supabase.co';
+const SUPABASE_ANON_KEY = 'your-anon-key';
 
 /* ════ ストレージフォールバック ════ */
 const safeStorage = {
@@ -555,11 +614,12 @@ function showAuth() {
 
 /* ════ ページナビ ════ */
 function switchPage(page) {
-  document.querySelectorAll('.page-btn').forEach((b, i) => b.classList.toggle('active', ['home','board','chat','settings'][i] === page));
+  document.querySelectorAll('.page-btn').forEach((b, i) => b.classList.toggle('active', ['home','board','chat','game','settings'][i] === page));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   if (page === 'board')    loadPosts();
   if (page === 'chat')     initChat();
+  if (page === 'game')     gInit();
   if (page === 'settings') loadSettings();
 }
 
@@ -810,6 +870,297 @@ async function deleteAccount() {
   }
   await sb.auth.signOut();
 }
+
+/* ════════════════════════════════════════
+   🎮 バブルシューター
+   ════════════════════════════════════════ */
+const GW = 388, GH = 520;
+const GR = 19, GCW = GR*2+2, GRH = Math.round(Math.sqrt(3)*GR);
+const G_COLS_E = 9, G_COLS_O = 8;
+const G_TOP = 28, G_SHOOTER_Y = GH - 52, G_SPEED = 9;
+const G_DANGER_Y = GH - 108;
+const G_COLORS = ['#f25f5c','#7c6cfc','#56cfad','#f4a261','#4cc9f0','#e040fb'];
+const G_PLAY_COST = 10, G_PTS_BUBBLE = 10, G_PTS_FLOAT = 5, G_CLEAR_BONUS = 50;
+
+let gGrid=[], gBall=null, gAim={x:GW/2,y:G_SHOOTER_Y-60};
+let gShooterCI=0, gNextCI=0, gScore=0, gActive=false, gAnimId=null;
+let gInited=false;
+
+const gCanvas = () => document.getElementById('game-canvas');
+const gCtx    = () => gCanvas().getContext('2d');
+
+/* 初回ページ訪問時のみ描画開始 */
+function gInit() {
+  if (!gInited) {
+    gInited = true;
+    gRenderStatic();
+  }
+  gUpdateStartBtn();
+}
+
+function gColsInRow(r) { return r%2===0 ? G_COLS_E : G_COLS_O; }
+function gCellCenter(r,c) {
+  const x = r%2===0 ? GR+1+c*GCW : GR+1+GCW/2+c*GCW;
+  const y = G_TOP + r*GRH + GR;
+  return {x, y};
+}
+function gNeighbors(r,c) {
+  return r%2===0
+    ? [[r,c-1],[r,c+1],[r-1,c-1],[r-1,c],[r+1,c-1],[r+1,c]]
+    : [[r,c-1],[r,c+1],[r-1,c],[r-1,c+1],[r+1,c],[r+1,c+1]];
+}
+function gInBounds(r,c) { return r>=0 && c>=0 && c<gColsInRow(r); }
+function gCountBubbles() {
+  let n=0;
+  for(let r=0;r<gGrid.length;r++) for(let c=0;c<gColsInRow(r);c++) if(gGrid[r]?.[c]>=0) n++;
+  return n;
+}
+
+/* ── ゲーム開始 ── */
+async function gStartGame() {
+  gHideOverlays();
+  // ポイント消費
+  const cur = userPoints;
+  if (cur < G_PLAY_COST) { gUpdateStartBtn(); return; }
+  const next = Math.max(0, cur - G_PLAY_COST);
+  if (sb && currentUserId) {
+    await sb.from('profiles').update({points:next}).eq('id',currentUserId);
+    await sb.from('point_logs').insert({user_id:currentUserId, amount:-G_PLAY_COST, reason:'バブルシューター（開始）'});
+    userPoints = next;
+    document.getElementById('pts-value').textContent = next.toLocaleString();
+  }
+  gUpdateStartBtn();
+
+  gScore=0; gActive=true;
+  gGrid=[];
+  const usedC = 5;
+  for(let r=0;r<7;r++){
+    gGrid[r]=[];
+    for(let c=0;c<gColsInRow(r);c++) gGrid[r][c]=Math.floor(Math.random()*usedC);
+  }
+  gShooterCI=Math.floor(Math.random()*G_COLORS.length);
+  gNextCI   =Math.floor(Math.random()*G_COLORS.length);
+  gBall=null;
+  gUpdateHUD();
+  if(gAnimId) cancelAnimationFrame(gAnimId);
+  gAnimId=requestAnimationFrame(gLoop);
+}
+
+function gUpdateStartBtn() {
+  const enough = userPoints >= G_PLAY_COST;
+  document.getElementById('gbtn-start').disabled = !enough;
+  document.getElementById('gbtn-retry').disabled = !enough;
+  document.getElementById('g-nopt').style.display = enough ? 'none' : 'block';
+}
+
+/* ── 終了 ── */
+async function gGameOver() {
+  gActive=false;
+  const earned = Math.floor(gScore/3);
+  if (sb && currentUserId && earned>0) {
+    const np = userPoints+earned;
+    await sb.from('profiles').update({points:np}).eq('id',currentUserId);
+    await sb.from('point_logs').insert({user_id:currentUserId,amount:earned,reason:`バブルシューター スコア${gScore}`});
+    userPoints=np;
+    document.getElementById('pts-value').textContent = np.toLocaleString();
+  }
+  document.getElementById('g-final').textContent = gScore;
+  document.getElementById('g-earn').textContent  = `+${earned} pt 獲得！`;
+  document.getElementById('g-msg').textContent   = gScore>200?'素晴らしい！':gScore>80?'惜しい！次は頑張ろう。':'練習あるのみ！';
+  document.getElementById('gov-over').style.display='flex';
+  gUpdateStartBtn();
+}
+
+async function gStageClear() {
+  gActive=false;
+  const earned = Math.floor(gScore/3)+G_CLEAR_BONUS;
+  if (sb && currentUserId) {
+    const np = userPoints+earned;
+    await sb.from('profiles').update({points:np}).eq('id',currentUserId);
+    await sb.from('point_logs').insert({user_id:currentUserId,amount:earned,reason:`バブルシューター 全消し！スコア${gScore}`});
+    userPoints=np;
+    document.getElementById('pts-value').textContent = np.toLocaleString();
+  }
+  document.getElementById('g-cscore').textContent = gScore;
+  document.getElementById('g-cearn').textContent  = `+${earned} pt 獲得！`;
+  document.getElementById('gov-clear').style.display='flex';
+  gUpdateStartBtn();
+}
+
+function gShowStart() { gHideOverlays(); document.getElementById('gov-start').style.display='flex'; gUpdateStartBtn(); }
+function gHideOverlays() { ['gov-start','gov-over','gov-clear'].forEach(id=>document.getElementById(id).style.display='none'); }
+
+function gUpdateHUD() {
+  document.getElementById('g-hud-score').textContent = gScore;
+  document.getElementById('g-hud-bub').textContent   = gCountBubbles();
+  document.getElementById('g-hud-next').innerHTML    = `<span style="color:${G_COLORS[gNextCI]};font-size:20px">●</span>`;
+}
+
+/* ── 射出 ── */
+function gShoot() {
+  if(!gActive||gBall) return;
+  const dx=gAim.x-GW/2, dy=gAim.y-G_SHOOTER_Y;
+  const len=Math.hypot(dx,dy)||1;
+  if(dy>=-10) return;
+  gBall={x:GW/2,y:G_SHOOTER_Y,vx:(dx/len)*G_SPEED,vy:(dy/len)*G_SPEED,ci:gShooterCI};
+  gShooterCI=gNextCI;
+  gNextCI=Math.floor(Math.random()*G_COLORS.length);
+}
+
+/* ── 物理 ── */
+function gStepBall() {
+  if(!gBall) return;
+  gBall.x+=gBall.vx; gBall.y+=gBall.vy;
+  if(gBall.x-GR<0)  {gBall.x=GR;   gBall.vx=Math.abs(gBall.vx);}
+  if(gBall.x+GR>GW) {gBall.x=GW-GR;gBall.vx=-Math.abs(gBall.vx);}
+  if(gBall.y-GR<G_TOP) {gSnapBall(gBall.x,G_TOP+GR);return;}
+  for(let r=0;r<gGrid.length;r++) for(let c=0;c<gColsInRow(r);c++) {
+    if(gGrid[r]?.[c]<0) continue;
+    const {x,y}=gCellCenter(r,c);
+    if(Math.hypot(gBall.x-x,gBall.y-y)<GR*1.85){gSnapBall(gBall.x,gBall.y);return;}
+  }
+}
+
+function gSnapBall(px,py) {
+  let best=null,bestD=Infinity;
+  const r0=Math.max(0,Math.floor((py-G_TOP)/GRH)-1);
+  for(let r=r0;r<=r0+3;r++){
+    if(!gGrid[r]) gGrid[r]=new Array(gColsInRow(r)).fill(-1);
+    for(let c=0;c<gColsInRow(r);c++){
+      if(gGrid[r][c]>=0) continue;
+      const {x,y}=gCellCenter(r,c);
+      const d=Math.hypot(px-x,py-y);
+      if(d<bestD){bestD=d;best={r,c};}
+    }
+  }
+  if(!best){gBall=null;return;}
+  gGrid[best.r][best.c]=gBall.ci;
+  gBall=null;
+  const matched=gFindMatches(best.r,best.c);
+  if(matched.length>=3){
+    matched.forEach(([r,c])=>{gGrid[r][c]=-1;});
+    gScore+=matched.length*G_PTS_BUBBLE;
+    const floaters=gFindFloating();
+    floaters.forEach(([r,c])=>{gGrid[r][c]=-1;});
+    gScore+=floaters.length*G_PTS_FLOAT;
+    showToast(`🫧 ${matched.length+floaters.length}個消去！ +${matched.length*G_PTS_BUBBLE+floaters.length*G_PTS_FLOAT}pt`);
+  }
+  while(gGrid.length&&gGrid[gGrid.length-1].every(v=>v<0)) gGrid.pop();
+  gUpdateHUD();
+  if(gCountBubbles()===0){gStageClear();return;}
+  for(let r=0;r<gGrid.length;r++) for(let c=0;c<gColsInRow(r);c++){
+    if(gGrid[r]?.[c]<0) continue;
+    if(gCellCenter(r,c).y+GR>G_DANGER_Y){gGameOver();return;}
+  }
+}
+
+function gFindMatches(sr,sc) {
+  const color=gGrid[sr]?.[sc]; if(color==null||color<0) return [];
+  const vis=new Set(),queue=[[sr,sc]],res=[];
+  while(queue.length){
+    const [r,c]=queue.shift(); const k=r*200+c;
+    if(vis.has(k)) continue;
+    if(!gInBounds(r,c)||gGrid[r]?.[c]!==color) continue;
+    vis.add(k); res.push([r,c]);
+    gNeighbors(r,c).forEach(([nr,nc])=>queue.push([nr,nc]));
+  }
+  return res;
+}
+
+function gFindFloating() {
+  const vis=new Set(),queue=[];
+  if(gGrid[0]) for(let c=0;c<gColsInRow(0);c++) if(gGrid[0][c]>=0){queue.push([0,c]);vis.add(c);}
+  while(queue.length){
+    const [r,c]=queue.shift();
+    gNeighbors(r,c).forEach(([nr,nc])=>{
+      const k=nr*200+nc;
+      if(vis.has(k)||!gInBounds(nr,nc)||!gGrid[nr]||gGrid[nr][nc]<0) return;
+      vis.add(k); queue.push([nr,nc]);
+    });
+  }
+  const fl=[];
+  for(let r=0;r<gGrid.length;r++) for(let c=0;c<gColsInRow(r);c++)
+    if(gGrid[r]?.[c]>=0&&!vis.has(r*200+c)) fl.push([r,c]);
+  return fl;
+}
+
+/* ── 描画 ── */
+function gLighten(hex,amt) {
+  const n=parseInt(hex.slice(1),16);
+  return `rgb(${Math.min(255,(n>>16)+amt)},${Math.min(255,((n>>8)&0xff)+amt)},${Math.min(255,(n&0xff)+amt)})`;
+}
+function gDrawBubble(ctx,x,y,ci,alpha=1) {
+  const col=G_COLORS[ci];
+  ctx.save(); ctx.globalAlpha=alpha;
+  ctx.shadowColor=col; ctx.shadowBlur=7;
+  const g=ctx.createRadialGradient(x-GR*.3,y-GR*.3,GR*.1,x,y,GR);
+  g.addColorStop(0,gLighten(col,40)); g.addColorStop(1,col);
+  ctx.fillStyle=g;
+  ctx.beginPath(); ctx.arc(x,y,GR-1,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.fillStyle='rgba(255,255,255,0.22)';
+  ctx.beginPath(); ctx.arc(x-GR*.28,y-GR*.28,GR*.33,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+function gRender() {
+  const c=gCanvas(), ctx=gCtx();
+  ctx.clearRect(0,0,GW,GH);
+  const bg=ctx.createLinearGradient(0,0,0,GH);
+  bg.addColorStop(0,'#0c0c14'); bg.addColorStop(1,'#0a0a10');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,GW,GH);
+  // 危険ライン
+  ctx.strokeStyle='rgba(242,95,92,0.2)'; ctx.setLineDash([6,4]);
+  ctx.beginPath(); ctx.moveTo(0,G_DANGER_Y); ctx.lineTo(GW,G_DANGER_Y); ctx.stroke();
+  ctx.setLineDash([]);
+  // グリッド
+  for(let r=0;r<gGrid.length;r++) for(let c=0;c<gColsInRow(r);c++){
+    if(gGrid[r]?.[c]<0) continue;
+    const {x,y}=gCellCenter(r,c); gDrawBubble(ctx,x,y,gGrid[r][c]);
+  }
+  // ガイドライン
+  if(gActive&&!gBall){
+    const dx=gAim.x-GW/2,dy=gAim.y-G_SHOOTER_Y,len=Math.hypot(dx,dy)||1;
+    if(dy<-10){
+      let lx=GW/2,ly=G_SHOOTER_Y,tvx=dx/len,tvy=dy/len;
+      ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.setLineDash([5,9]);
+      ctx.beginPath(); ctx.moveTo(lx,ly);
+      for(let i=0;i<14;i++){
+        lx+=tvx*28; ly+=tvy*28;
+        if(lx-GR<0){lx=GR;tvx=Math.abs(tvx);} if(lx+GR>GW){lx=GW-GR;tvx=-Math.abs(tvx);}
+        if(ly<G_TOP) break;
+        ctx.lineTo(lx,ly);
+      }
+      ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+  // シューター台座
+  ctx.fillStyle='rgba(124,108,252,0.12)';
+  ctx.beginPath(); ctx.arc(GW/2,G_SHOOTER_Y+10,26,0,Math.PI*2); ctx.fill();
+  gDrawBubble(ctx,GW/2,G_SHOOTER_Y,gShooterCI);
+  // NEXT
+  gDrawBubble(ctx,GW-34,G_SHOOTER_Y+8,gNextCI,0.65);
+  ctx.fillStyle='rgba(136,136,160,0.7)'; ctx.font='9px Inter,system-ui';
+  ctx.textAlign='center'; ctx.fillText('NEXT',GW-34,G_SHOOTER_Y+8+GR+10);
+  // 移動バブル
+  if(gBall) gDrawBubble(ctx,gBall.x,gBall.y,gBall.ci);
+}
+function gRenderStatic() { gRender(); }
+function gLoop() { if(!gActive) return; gStepBall(); gRender(); gAnimId=requestAnimationFrame(gLoop); }
+
+/* ── 入力 ── */
+function gGetPos(e) {
+  const rect=gCanvas().getBoundingClientRect();
+  const sx=GW/rect.width,sy=GH/rect.height;
+  if(e.touches) return {x:(e.touches[0].clientX-rect.left)*sx,y:(e.touches[0].clientY-rect.top)*sy};
+  return {x:(e.clientX-rect.left)*sx,y:(e.clientY-rect.top)*sy};
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const cv=document.getElementById('game-canvas');
+  cv.addEventListener('mousemove',e=>{ if(!gActive) return; const p=gGetPos(e); gAim.x=p.x;gAim.y=p.y; });
+  cv.addEventListener('click',    e=>{ if(!gActive) return; const p=gGetPos(e); gAim.x=p.x;gAim.y=p.y; gShoot(); });
+  cv.addEventListener('touchmove',e=>{ e.preventDefault(); if(!gActive) return; const p=gGetPos(e); gAim.x=p.x;gAim.y=p.y; },{passive:false});
+  cv.addEventListener('touchend', e=>{ e.preventDefault(); gShoot(); },{passive:false});
+});
 
 /* ════ ヘルパー ════ */
 let toastTimer;
