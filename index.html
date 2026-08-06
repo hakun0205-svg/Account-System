@@ -350,7 +350,7 @@ let sb;
 function initSupabase() {
   const createClient = window.__supabaseCreateClient;
   if (!createClient) return;
-  sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { storage: safeStorage, persistSession: true, autoRefreshToken: true } });
+  sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { storage: safeStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
   if (SUPABASE_URL.includes('your-project')) { document.getElementById('setup-notice').style.display = 'block'; return; }
   document.getElementById('setup-notice').style.display = 'none';
   sb.auth.getSession().then(({ data: { session } }) => { if (session) showDashboard(session.user); });
@@ -404,7 +404,9 @@ async function handleGitHub() {
     const b = document.getElementById(id);
     if (b) { b.disabled = true; b.innerHTML = '<span class="spinner"></span>リダイレクト中…'; }
   });
-  const { error } = await sb.auth.signInWithOAuth({ provider: 'github', options: { redirectTo: window.location.href } });
+  // GitHub Pages対応: hashやクエリを除いたクリーンなURLにリダイレクト
+  const redirectTo = window.location.origin + window.location.pathname;
+  const { error } = await sb.auth.signInWithOAuth({ provider: 'github', options: { redirectTo } });
   if (error) {
     showMsg(te(error.message), 'error');
     ['github-btn-login','github-btn-signup'].forEach(id => {
