@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MyApp</title>
   <script type="module">
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -10,244 +10,258 @@
     window.dispatchEvent(new Event('supabase-ready'));
   </script>
   <style>
-    :root {
-      --bg:      #0f0f13;
-      --surface: #18181f;
-      --border:  #2a2a36;
-      --accent:  #7c6cfc;
-      --accent-h:#9b8eff;
-      --text:    #e8e8f0;
-      --muted:   #8888a0;
-      --danger:  #f25f5c;
-      --success: #56cfad;
-      --radius:  12px;
-      --font:    'Inter', system-ui, sans-serif;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg); color: var(--text);
-      font-family: var(--font); min-height: 100vh;
-      display: flex; align-items: flex-start; justify-content: center;
-      padding: 24px;
-    }
+    :root{--bg:#0f0f13;--surface:#18181f;--surface2:#1e1e28;--border:#2a2a36;--accent:#7c6cfc;--accent-h:#9b8eff;--text:#e8e8f0;--muted:#8888a0;--danger:#f25f5c;--success:#56cfad;--gold:#f4c531;--r:12px;--font:'Inter',system-ui,sans-serif}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100dvh;display:flex;align-items:flex-start;justify-content:center;padding:20px 14px 32px}
     /* ── カード ── */
-    .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); width: 100%; max-width: 460px;
-      padding: 36px 32px;
-    }
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);width:100%;max-width:480px;padding:36px 30px}
     /* ── ロゴ ── */
-    .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
-    .logo-mark {
-      width: 34px; height: 34px; background: var(--accent);
-      border-radius: 8px; display: grid; place-items: center;
-      font-size: 17px; font-weight: 700; color: #fff;
-    }
-    .logo-name { font-size: 17px; font-weight: 600; }
+    .logo{display:flex;align-items:center;gap:10px;margin-bottom:26px}
+    .logo-mark{width:34px;height:34px;background:var(--accent);border-radius:8px;display:grid;place-items:center;font-size:17px;font-weight:700;color:#fff}
+    .logo-name{font-size:17px;font-weight:700}
     /* ── 認証タブ ── */
-    .auth-tabs {
-      display: flex; gap: 4px; background: var(--bg);
-      border-radius: 8px; padding: 4px; margin-bottom: 24px;
-    }
-    .auth-tab {
-      flex: 1; padding: 8px; border: none; border-radius: 6px;
-      background: transparent; color: var(--muted);
-      font-size: 13px; font-weight: 500; cursor: pointer;
-      transition: background .15s, color .15s; font-family: var(--font);
-    }
-    .auth-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+    .auth-tabs{display:flex;gap:4px;background:var(--bg);border-radius:8px;padding:3px;margin-bottom:22px}
+    .auth-tab{flex:1;padding:8px;border:none;border-radius:6px;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:background .15s,color .15s}
+    .auth-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.4)}
     /* ── フォーム ── */
-    .form-group { margin-bottom: 16px; }
-    label { display: block; font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: .6px; text-transform: uppercase; margin-bottom: 6px; }
-    input[type=email], input[type=password] {
-      width: 100%; background: var(--bg); border: 1px solid var(--border);
-      border-radius: 8px; padding: 10px 13px; font-size: 14px;
-      color: var(--text); outline: none; transition: border-color .15s; font-family: var(--font);
-    }
-    input:focus { border-color: var(--accent); }
-    input::placeholder { color: var(--muted); }
+    .form-group{margin-bottom:15px}
+    label{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:5px}
+    input[type=email],input[type=password]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:14px;color:var(--text);outline:none;transition:border-color .15s;font-family:var(--font)}
+    input:focus{border-color:var(--accent)}
+    input::placeholder{color:var(--muted)}
     /* ── ボタン ── */
-    .btn {
-      width: 100%; padding: 11px; border: none; border-radius: 8px;
-      font-size: 14px; font-weight: 600; cursor: pointer;
-      transition: opacity .15s, transform .1s; font-family: var(--font);
-    }
-    .btn:active { transform: scale(.98); }
-    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover:not(:disabled) { opacity: .88; }
-    .btn-ghost { background: var(--border); color: var(--text); margin-top: 8px; }
-    .btn-ghost:hover { opacity: .8; }
+    .btn{width:100%;padding:11px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;font-family:var(--font)}
+    .btn:active{transform:scale(.98)}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover:not(:disabled){opacity:.88}
+    .btn-ghost{background:var(--border);color:var(--text);margin-top:8px}.btn-ghost:hover{opacity:.8}
+    .btn-danger{width:100%;padding:10px;border:1px solid rgba(242,95,92,.4);border-radius:8px;background:transparent;color:var(--danger);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+    .btn-danger:hover{background:rgba(242,95,92,.1)}
     /* ── GitHub ── */
-    .divider { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: var(--muted); font-size: 12px; }
-    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-    .btn-github {
-      display: flex; align-items: center; justify-content: center; gap: 9px;
-      background: #24292e; color: #fff; border: 1px solid #444d56;
-    }
-    .btn-github:hover:not(:disabled) { background: #2f363d; }
+    .divider{display:flex;align-items:center;gap:10px;margin:15px 0;color:var(--muted);font-size:12px}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+    .btn-github{display:flex;align-items:center;justify-content:center;gap:9px;background:#24292e;color:#fff;border:1px solid #444d56}
+    .btn-github:hover:not(:disabled){background:#2f363d}
     /* ── メッセージ ── */
-    .msg { font-size: 13px; padding: 10px 13px; border-radius: 8px; margin-bottom: 16px; display: none; }
-    .msg.error   { background: rgba(242,95,92,.12); color: var(--danger); border: 1px solid rgba(242,95,92,.3); }
-    .msg.success { background: rgba(86,207,173,.12); color: var(--success); border: 1px solid rgba(86,207,173,.3); }
-    .msg.show { display: block; }
+    .msg{font-size:13px;padding:10px 12px;border-radius:8px;margin-bottom:14px;display:none}
+    .msg.error{background:rgba(242,95,92,.12);color:var(--danger);border:1px solid rgba(242,95,92,.3)}
+    .msg.success{background:rgba(86,207,173,.12);color:var(--success);border:1px solid rgba(86,207,173,.3)}
+    .msg.show{display:block}
     /* ── 設定案内 ── */
-    .config-notice { background: var(--bg); border: 1px dashed var(--border); border-radius: 10px; padding: 18px; margin-bottom: 24px; }
-    .config-notice h3 { font-size: 13px; margin-bottom: 8px; color: var(--accent-h); }
-    .config-notice code { display: block; font-family: 'Menlo',monospace; font-size: 11px; color: var(--muted); background: #0a0a10; border-radius: 6px; padding: 10px; margin-top: 6px; line-height: 1.7; }
-    /* ── ダッシュボード上部 ── */
-    .dash-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-    .user-chip { display: flex; align-items: center; gap: 7px; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 5px 11px 5px 7px; font-size: 12px; }
-    .avatar { width: 24px; height: 24px; background: var(--accent); border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
-    /* ── ページナビ ── */
-    .page-nav { display: flex; gap: 2px; background: var(--bg); border-radius: 9px; padding: 3px; margin-bottom: 20px; }
-    .page-btn { flex: 1; padding: 8px 4px; border: none; border-radius: 7px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s, color .15s; font-family: var(--font); display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .page-btn .pbi { font-size: 16px; }
-    .page-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.4); }
-    /* ── セクションタイトル ── */
-    .sec { font-size: 11px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px; }
-    /* ── ホーム: info grid ── */
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
-    .info-tile { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 13px; }
-    .info-tile .tl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
-    .info-tile .tv { font-size: 13px; font-weight: 500; word-break: break-all; }
-    /* ── ポイント ── */
-    .pts-hero { background: linear-gradient(135deg,#3d2fa0,#7c6cfc); border-radius: 12px; padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .pts-hero .ph-label { font-size: 10px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .5px; }
-    .pts-hero .ph-value { font-size: 36px; font-weight: 800; color: #fff; letter-spacing: -1px; }
-    .pts-hero .ph-sub   { font-size: 11px; color: rgba(255,255,255,.55); }
-    .pts-hero .ph-icon  { font-size: 38px; }
-    @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
-    .pts-pop { animation: pop .3s ease; }
-    .checkin-btn { width: 100%; padding: 11px; border: 1px solid rgba(124,108,252,.3); border-radius: 8px; background: rgba(124,108,252,.12); color: var(--accent-h); font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; font-family: var(--font); display: flex; align-items: center; justify-content: center; gap: 7px; margin-bottom: 10px; }
-    .checkin-btn:hover:not(:disabled) { background: rgba(124,108,252,.22); }
-    .checkin-btn:disabled { opacity: .4; cursor: not-allowed; }
-    .checkin-done { padding: 11px; border-radius: 8px; background: rgba(86,207,173,.08); color: var(--success); border: 1px solid rgba(86,207,173,.2); font-size: 13px; text-align: center; margin-bottom: 10px; }
-    .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
-    .action-btn { padding: 10px 6px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 11px; font-weight: 600; cursor: pointer; font-family: var(--font); display: flex; flex-direction: column; align-items: center; gap: 3px; transition: background .15s; }
-    .action-btn:hover:not(:disabled) { background: var(--border); }
-    .action-btn:disabled { opacity: .4; cursor: not-allowed; }
-    .ab-pts { font-size: 14px; font-weight: 800; }
-    .ab-pts.earn { color: var(--success); }
-    .ab-pts.spend { color: var(--danger); }
-    /* ── ポイント履歴 ── */
-    .log-list { display: flex; flex-direction: column; gap: 7px; }
-    .log-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; }
-    .log-left { display: flex; align-items: center; gap: 9px; }
-    .log-reason { font-size: 12px; font-weight: 500; }
-    .log-date   { font-size: 10px; color: var(--muted); margin-top: 1px; }
-    .log-amt { font-size: 13px; font-weight: 700; }
-    .log-amt.plus { color: var(--success); }
-    .log-amt.minus { color: var(--danger); }
-    .log-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 14px 0; }
+    .config-notice{background:var(--bg);border:1px dashed var(--border);border-radius:10px;padding:16px;margin-bottom:22px}
+    .config-notice h3{font-size:13px;margin-bottom:7px;color:var(--accent-h)}
+    .config-notice code{display:block;font-family:'Menlo',monospace;font-size:11px;color:var(--muted);background:#0a0a10;border-radius:6px;padding:8px;margin-top:5px;line-height:1.7}
+    /* ── ダッシュヘッダー ── */
+    .dash-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .user-chip{display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:5px 12px 5px 7px;font-size:12px}
+    .pts-mini{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:700}
+    /* ── アバター ── */
+    .avatar{width:26px;height:26px;background:var(--accent);border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+    /* ── ページナビ（横スクロール12タブ） ── */
+    .page-nav{display:flex;gap:2px;background:var(--bg);border-radius:9px;padding:3px;margin-bottom:18px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    .page-nav::-webkit-scrollbar{display:none}
+    .page-btn{position:relative;flex:0 0 auto;min-width:50px;padding:6px 4px;border:none;border-radius:7px;background:transparent;color:var(--muted);font-size:10px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;flex-direction:column;align-items:center;gap:2px;transition:background .15s,color .15s}
+    .page-btn .pbi{font-size:15px;line-height:1}
+    .page-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+    .nav-badge{position:absolute;top:2px;right:4px;min-width:14px;height:14px;background:var(--danger);color:#fff;border-radius:999px;font-size:9px;font-weight:700;display:grid;place-items:center;padding:0 3px;pointer-events:none}
+    /* ── 共通 ── */
+    .sec{font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin:18px 0 9px}
+    .tile{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+    .empty-msg{font-size:13px;color:var(--muted);text-align:center;padding:24px 0}
+    .loading-msg{font-size:13px;color:var(--muted);text-align:center;padding:16px 0}
+    .page{display:none}.page.active{display:block}
+    /* ── ホーム ── */
+    .pts-hero{background:linear-gradient(135deg,#3d2fa0,#7c6cfc);border-radius:12px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .ph-label{font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px}
+    .ph-value{font-size:36px;font-weight:800;color:#fff;letter-spacing:-1px;line-height:1.1}
+    .ph-sub{font-size:11px;color:rgba(255,255,255,.55)}
+    @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.14)}100%{transform:scale(1)}}
+    .pts-pop{animation:pop .3s ease}
+    .checkin-btn{width:100%;padding:10px;border:1px solid rgba(124,108,252,.3);border-radius:8px;background:rgba(124,108,252,.12);color:var(--accent-h);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:10px;transition:background .15s}
+    .checkin-btn:hover:not(:disabled){background:rgba(124,108,252,.22)}
+    .checkin-btn:disabled{opacity:.4;cursor:not-allowed}
+    .checkin-done{padding:10px;border-radius:8px;background:rgba(86,207,173,.08);color:var(--success);border:1px solid rgba(86,207,173,.2);font-size:13px;text-align:center;margin-bottom:10px}
+    .action-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:4px}
+    .action-btn{padding:9px 6px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;flex-direction:column;align-items:center;gap:3px;transition:background .15s}
+    .action-btn:hover:not(:disabled){background:var(--border)}
+    .action-btn:disabled{opacity:.4;cursor:not-allowed}
+    .ab-pts{font-size:14px;font-weight:800}.ab-pts.earn{color:var(--success)}.ab-pts.spend{color:var(--danger)}
+    .log-list{display:flex;flex-direction:column;gap:7px}
+    .log-item{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px}
+    .log-left{display:flex;align-items:center;gap:8px}
+    .log-reason{font-size:12px;font-weight:500}.log-date{font-size:10px;color:var(--muted)}
+    .log-amt{font-size:13px;font-weight:700}.log-amt.plus{color:var(--success)}.log-amt.minus{color:var(--danger)}
+    /* ── ランキング ── */
+    .rank-list{display:flex;flex-direction:column;gap:8px}
+    .rank-item{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px 13px;transition:border-color .15s}
+    .rank-item.rank-me{border-color:var(--accent);background:rgba(124,108,252,.06)}
+    .rank-num{font-size:16px;min-width:28px;text-align:center;font-weight:700}
+    .rank-av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+    .rank-info{flex:1;min-width:0}
+    .rank-name{font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+    .rank-pts{font-size:11px;color:var(--muted);margin-top:2px}
+    .rank-title{font-size:11px;color:var(--gold)}
+    .rank-me-badge{font-size:10px;background:rgba(124,108,252,.2);color:var(--accent-h);padding:3px 8px;border-radius:999px;font-weight:600}
+    .dm-quick-btn{padding:5px 10px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:background .15s}
+    .dm-quick-btn:hover{background:var(--border)}
+    /* ── 統計 ── */
+    .stat-tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+    .stat-tile{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:11px;text-align:center}
+    .stat-tile .stl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+    .stat-tile .stv{font-size:18px;font-weight:800;margin-top:3px}
+    .chart-legend{display:flex;gap:14px;margin-bottom:8px;font-size:11px;color:var(--muted)}
+    .chart-legend span{display:flex;align-items:center;gap:4px}
+    .chart-legend .dot{width:8px;height:8px;border-radius:2px}
+    /* ── お知らせ ── */
+    .notif-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .notif-header h3{font-size:14px;font-weight:700}
+    .mark-read-btn{font-size:12px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:var(--font)}
+    .mark-read-btn:hover{color:var(--text)}
+    .notif-list{display:flex;flex-direction:column;gap:7px}
+    .notif-item{display:flex;align-items:flex-start;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:11px 13px}
+    .notif-item.unread{border-left:3px solid var(--accent);padding-left:11px}
+    .notif-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+    .notif-msg{font-size:13px;line-height:1.5}
+    .notif-time{font-size:10px;color:var(--muted);margin-top:3px}
+    /* ── フレンド ── */
+    .friend-tabs{display:flex;gap:3px;background:var(--bg);border-radius:7px;padding:3px;margin-bottom:12px}
+    .ftab{flex:1;padding:7px;border:none;border-radius:5px;background:transparent;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:background .15s,color .15s}
+    .ftab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+    .friend-list{display:flex;flex-direction:column;gap:7px}
+    .friend-item{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 12px}
+    .friend-info{flex:1;min-width:0}
+    .friend-name{font-size:13px;font-weight:600}
+    .friend-pts{font-size:11px;color:var(--muted);margin-top:2px}
+    .follow-btn{padding:5px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);border:1px solid var(--border);background:transparent;color:var(--text);white-space:nowrap;transition:background .15s,color .15s}
+    .follow-btn.following{background:rgba(124,108,252,.15);color:var(--accent-h);border-color:rgba(124,108,252,.4)}
+    .follow-btn:hover{background:var(--border)}
+    /* ── DM ── */
+    .dm-list{display:flex;flex-direction:column;gap:7px}
+    .dm-conv-item{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:11px 12px;cursor:pointer;transition:border-color .15s}
+    .dm-conv-item:hover{border-color:var(--accent)}
+    .dm-conv-info{flex:1;min-width:0}
+    .dm-conv-name{font-size:13px;font-weight:600}
+    .dm-conv-last{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .dm-conv-time{font-size:10px;color:var(--muted);flex-shrink:0}
+    .dm-unread-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;flex-shrink:0}
+    .dm-back-btn{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:var(--font);margin-bottom:10px;padding:0}
+    .dm-back-btn:hover{color:var(--text)}
+    .dm-partner-info{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+    .dm-partner-name{font-size:15px;font-weight:700}
+    .chat-window{background:var(--bg);border:1px solid var(--border);border-radius:10px;height:260px;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px;margin-bottom:8px;scroll-behavior:smooth}
+    .chat-window::-webkit-scrollbar{width:3px}
+    .chat-window::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+    .chat-msg{display:flex;gap:7px;align-items:flex-end}
+    .chat-msg.mine{flex-direction:row-reverse}
+    .chat-av{width:24px;height:24px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+    .chat-bubble{max-width:72%;padding:7px 11px;border-radius:13px;font-size:13px;line-height:1.45;word-break:break-word}
+    .chat-msg:not(.mine) .chat-bubble{background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:3px}
+    .chat-msg.mine .chat-bubble{background:var(--accent);color:#fff;border-bottom-right-radius:3px}
+    .chat-name{font-size:9px;color:var(--muted);margin-bottom:2px}
+    .chat-msg.mine .chat-name{text-align:right}
+    .chat-ts{font-size:9px;color:var(--muted);margin-bottom:3px;flex-shrink:0}
+    .chat-compose{display:flex;gap:7px}
+    .chat-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 11px;font-size:13px;color:var(--text);outline:none;font-family:var(--font);transition:border-color .15s}
+    .chat-input:focus{border-color:var(--accent)}
+    .chat-input::placeholder{color:var(--muted)}
+    .chat-send{padding:9px 14px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);flex-shrink:0}
+    .chat-send:disabled{opacity:.5;cursor:not-allowed}
+    .chat-empty{color:var(--muted);font-size:12px;text-align:center;margin:auto}
+    .online-dot{width:7px;height:7px;background:var(--success);border-radius:50%;display:inline-block;margin-right:4px}
     /* ── 掲示板 ── */
-    .post-compose { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
-    .post-compose textarea {
-      width: 100%; background: transparent; border: none; outline: none;
-      color: var(--text); font-size: 14px; font-family: var(--font);
-      resize: none; line-height: 1.5; min-height: 70px;
-    }
-    .post-compose textarea::placeholder { color: var(--muted); }
-    .compose-footer { display: flex; justify-content: flex-end; margin-top: 10px; }
-    .post-submit { padding: 7px 18px; border: none; border-radius: 7px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: opacity .15s; }
-    .post-submit:hover:not(:disabled) { opacity: .85; }
-    .post-submit:disabled { opacity: .5; cursor: not-allowed; }
-    .post-list { display: flex; flex-direction: column; gap: 10px; }
-    .post-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
-    .post-header { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
-    .post-avatar { width: 28px; height: 28px; background: var(--accent); border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; }
-    .post-meta { flex: 1; }
-    .post-author { font-size: 12px; font-weight: 600; }
-    .post-time   { font-size: 10px; color: var(--muted); }
-    .post-body   { font-size: 13px; line-height: 1.6; margin-bottom: 10px; word-break: break-word; }
-    .post-footer { display: flex; gap: 8px; align-items: center; }
-    .like-btn, .del-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; font-size: 12px; cursor: pointer; font-family: var(--font); color: var(--muted); transition: background .15s, color .15s; }
-    .like-btn:hover { background: rgba(124,108,252,.15); color: var(--accent-h); border-color: rgba(124,108,252,.4); }
-    .like-btn.liked { background: rgba(124,108,252,.18); color: var(--accent-h); border-color: rgba(124,108,252,.5); }
-    .del-btn:hover  { background: rgba(242,95,92,.12); color: var(--danger); border-color: rgba(242,95,92,.3); }
-    .board-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 24px 0; }
-    /* ── チャット ── */
-    .chat-window {
-      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
-      height: 300px; overflow-y: auto; padding: 12px; display: flex;
-      flex-direction: column; gap: 8px; margin-bottom: 10px;
-    }
-    .chat-window::-webkit-scrollbar { width: 4px; }
-    .chat-window::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    .chat-msg { display: flex; gap: 8px; align-items: flex-end; }
-    .chat-msg.mine { flex-direction: row-reverse; }
-    .chat-av { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
-    .chat-bubble { max-width: 72%; padding: 8px 12px; border-radius: 14px; font-size: 13px; line-height: 1.45; word-break: break-word; }
-    .chat-msg:not(.mine) .chat-bubble { background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
-    .chat-msg.mine .chat-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
-    .chat-name { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
-    .chat-msg.mine .chat-name { text-align: right; }
-    .chat-ts { font-size: 9px; color: var(--muted); margin-bottom: 4px; flex-shrink: 0; }
-    .chat-compose { display: flex; gap: 8px; }
-    .chat-input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--text); outline: none; font-family: var(--font); transition: border-color .15s; }
-    .chat-input:focus { border-color: var(--accent); }
-    .chat-input::placeholder { color: var(--muted); }
-    .chat-send { padding: 10px 16px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: opacity .15s; flex-shrink: 0; }
-    .chat-send:hover:not(:disabled) { opacity: .85; }
-    .chat-send:disabled { opacity: .5; cursor: not-allowed; }
-    .chat-empty { color: var(--muted); font-size: 12px; text-align: center; margin: auto; }
-    .online-dot { width: 7px; height: 7px; background: var(--success); border-radius: 50%; display: inline-block; margin-right: 5px; }
-    /* ── 設定ページ ── */
-    .setting-group { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 10px; }
-    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 13px 15px; gap: 12px; }
-    .setting-row + .setting-row { border-top: 1px solid var(--border); }
-    .setting-row.col { flex-direction: column; align-items: stretch; gap: 10px; }
-    .setting-label { font-size: 13px; font-weight: 600; }
-    .setting-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .setting-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 9px 12px; font-size: 13px; color: var(--text); outline: none; font-family: var(--font); transition: border-color .15s; }
-    .setting-input:focus { border-color: var(--accent); }
-    .setting-input::placeholder { color: var(--muted); }
-    .setting-btn { padding: 7px 14px; border: none; border-radius: 7px; background: var(--accent); color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); white-space: nowrap; transition: opacity .15s; flex-shrink: 0; }
-    .setting-btn:hover:not(:disabled) { opacity: .85; }
-    .setting-btn:disabled { opacity: .5; cursor: not-allowed; }
-    .setting-btn.ghost { background: var(--border); color: var(--text); }
-    /* アバターカラー */
-    .color-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
-    .swatch { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: transform .15s, border-color .15s; }
-    .swatch:hover { transform: scale(1.15); }
-    .swatch.selected { border-color: #fff; box-shadow: 0 0 0 2px var(--accent); }
-    /* 危険ゾーン */
-    .danger-zone { background: rgba(242,95,92,.06); border: 1px solid rgba(242,95,92,.25); border-radius: 10px; padding: 15px; margin-bottom: 10px; }
-    .danger-zone h4 { font-size: 12px; font-weight: 700; color: var(--danger); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 8px; }
-    .danger-zone p  { font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
-    .btn-danger { width: 100%; padding: 10px; border: 1px solid rgba(242,95,92,.4); border-radius: 8px; background: transparent; color: var(--danger); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background .15s; }
-    .btn-danger:hover { background: rgba(242,95,92,.1); }
-    /* トースト */
-    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1e1e2a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--text); box-shadow: 0 4px 20px rgba(0,0,0,.4); transition: transform .3s ease, opacity .3s ease; opacity: 0; pointer-events: none; white-space: nowrap; z-index: 999; }
-    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-    /* ── ゲームページ ── */
-    .game-wrap { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 0 32px rgba(124,108,252,.1); }
-    #game-canvas { display: block; cursor: crosshair; touch-action: none; background: #0a0a10; }
-    .game-overlay { position: absolute; inset: 0; background: rgba(8,8,14,.93); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; }
-    .game-overlay h2 { font-size: 22px; font-weight: 800; }
-    .game-overlay p  { font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 240px; }
-    .big-gnum  { font-size: 52px; font-weight: 900; color: var(--accent); letter-spacing: -2px; line-height: 1; }
-    .earn-glabel { font-size: 14px; font-weight: 700; color: var(--success); }
-    .cost-glabel { font-size: 12px; color: var(--muted); }
-    .no-pts-warn { font-size: 12px; font-weight: 600; color: var(--danger); }
-    .btn-play-game { padding: 12px 30px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: opacity .15s; box-shadow: 0 4px 16px rgba(124,108,252,.35); }
-    .btn-play-game:hover:not(:disabled) { opacity: .88; }
-    .btn-play-game:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
-    .btn-sub-game  { padding: 8px 18px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text); font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); }
-    .game-hud { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
-    .hud-tile { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; text-align: center; }
-    .hud-tile .htl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
-    .hud-tile .htv { font-size: 18px; font-weight: 800; margin-top: 2px; }
-    /* ── スピナー ── */
-    .spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 5px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    /* ── ページ切り替え ── */
-    .page { display: none; }
-    .page.active { display: block; }
-    @media (max-width: 480px) {
-      .card { padding: 24px 18px; }
-      .info-grid { grid-template-columns: 1fr; }
-    }
+    .post-compose{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:12px}
+    .post-compose textarea{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-size:13px;font-family:var(--font);resize:none;line-height:1.5;min-height:64px}
+    .post-compose textarea::placeholder{color:var(--muted)}
+    .compose-footer{display:flex;justify-content:flex-end;margin-top:8px}
+    .post-submit{padding:7px 16px;border:none;border-radius:7px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+    .post-submit:hover:not(:disabled){opacity:.85}
+    .post-submit:disabled{opacity:.5;cursor:not-allowed}
+    .post-list{display:flex;flex-direction:column;gap:9px}
+    .post-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px}
+    .post-header{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+    .post-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+    .post-author{font-size:12px;font-weight:600}
+    .post-time{font-size:10px;color:var(--muted)}
+    .post-body{font-size:13px;line-height:1.6;margin-bottom:9px;word-break:break-word}
+    .post-footer{display:flex;gap:7px}
+    .like-btn,.del-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:12px;cursor:pointer;font-family:var(--font);color:var(--muted)}
+    .like-btn:hover{background:rgba(124,108,252,.15);color:var(--accent-h);border-color:rgba(124,108,252,.4)}
+    .like-btn.liked{background:rgba(124,108,252,.18);color:var(--accent-h);border-color:rgba(124,108,252,.4)}
+    .del-btn:hover{background:rgba(242,95,92,.1);color:var(--danger);border-color:rgba(242,95,92,.3)}
+    /* ── ミッション ── */
+    .mission-list{display:flex;flex-direction:column;gap:9px}
+    .mission-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px}
+    .mission-card.completed{border-color:rgba(86,207,173,.4);background:rgba(86,207,173,.04)}
+    .mission-top{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+    .mission-icon{font-size:22px;flex-shrink:0}
+    .mission-name{font-size:13px;font-weight:700}
+    .mission-desc{font-size:11px;color:var(--muted);margin-top:2px}
+    .mission-reward{margin-left:auto;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0}
+    .prog-bar-wrap{background:var(--border);border-radius:999px;height:6px;margin-bottom:7px;overflow:hidden}
+    .prog-bar-fill{height:100%;border-radius:999px;background:var(--accent);transition:width .4s ease}
+    .prog-bar-fill.done{background:var(--success)}
+    .prog-label{font-size:11px;color:var(--muted);display:flex;justify-content:space-between}
+    .mission-done-badge{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--success);font-weight:600}
+    /* ── ショップ ── */
+    .shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .shop-item{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+    .shop-item.owned{border-color:rgba(86,207,173,.4);background:rgba(86,207,173,.04)}
+    .shop-icon{font-size:28px}
+    .shop-name{font-size:12px;font-weight:700}
+    .shop-desc{font-size:10px;color:var(--muted);line-height:1.4}
+    .shop-price{font-size:13px;font-weight:800;color:var(--gold)}
+    .buy-btn{width:100%;padding:7px;border:none;border-radius:7px;background:var(--accent);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:opacity .15s}
+    .buy-btn:hover:not(:disabled){opacity:.85}
+    .buy-btn:disabled{opacity:.5;cursor:not-allowed;background:var(--border);color:var(--muted)}
+    .owned-badge{font-size:11px;color:var(--success);font-weight:600}
+    /* ── 設定 ── */
+    .setting-group{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:9px}
+    .setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;gap:12px}
+    .setting-row+.setting-row{border-top:1px solid var(--border)}
+    .setting-row.col{flex-direction:column;align-items:stretch;gap:9px}
+    .setting-label{font-size:13px;font-weight:600}
+    .setting-sub{font-size:11px;color:var(--muted);margin-top:2px}
+    .setting-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:9px 11px;font-size:13px;color:var(--text);outline:none;font-family:var(--font);transition:border-color .15s}
+    .setting-input:focus{border-color:var(--accent)}
+    .setting-input::placeholder{color:var(--muted)}
+    .setting-btn{padding:7px 13px;border:none;border-radius:7px;background:var(--accent);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);flex-shrink:0}
+    .setting-btn:hover:not(:disabled){opacity:.85}
+    .setting-btn:disabled{opacity:.5;cursor:not-allowed}
+    .setting-btn.ghost{background:var(--border);color:var(--text)}
+    .color-swatches{display:flex;gap:7px;flex-wrap:wrap}
+    .swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:transform .15s,border-color .15s}
+    .swatch:hover{transform:scale(1.15)}
+    .swatch.selected{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}
+    .emoji-picker{display:flex;flex-wrap:wrap;gap:5px}
+    .ep-btn{width:34px;height:34px;border:1px solid var(--border);border-radius:7px;background:var(--bg);font-size:18px;cursor:pointer;display:grid;place-items:center;transition:border-color .15s,background .15s}
+    .ep-btn:hover{border-color:var(--accent);background:rgba(124,108,252,.1)}
+    .ep-btn.selected{border-color:var(--accent);background:rgba(124,108,252,.2)}
+    .danger-zone{background:rgba(242,95,92,.06);border:1px solid rgba(242,95,92,.25);border-radius:10px;padding:14px;margin-bottom:9px}
+    .danger-zone h4{font-size:11px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+    .danger-zone p{font-size:12px;color:var(--muted);margin-bottom:11px;line-height:1.5}
+    /* ── ゲーム ── */
+    .game-wrap{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--border);box-shadow:0 0 30px rgba(124,108,252,.1)}
+    #game-canvas{display:block;cursor:crosshair;touch-action:none;background:#0a0a10}
+    .game-overlay{position:absolute;inset:0;background:rgba(8,8,14,.93);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center}
+    .game-overlay h2{font-size:22px;font-weight:800}
+    .game-overlay p{font-size:13px;color:var(--muted);line-height:1.6;max-width:240px}
+    .big-gnum{font-size:50px;font-weight:900;color:var(--accent);letter-spacing:-2px;line-height:1}
+    .earn-glabel{font-size:14px;font-weight:700;color:var(--success)}
+    .btn-play-game{padding:12px 28px;border:none;border-radius:10px;background:var(--accent);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);box-shadow:0 4px 14px rgba(124,108,252,.35)}
+    .btn-play-game:hover:not(:disabled){opacity:.88}
+    .btn-play-game:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+    .btn-sub-game{padding:8px 18px;border:1px solid var(--border);border-radius:9px;background:transparent;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
+    .game-hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:9px}
+    .hud-tile{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;text-align:center}
+    .htl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+    .htv{font-size:18px;font-weight:800;margin-top:2px}
+    .no-pts-warn{font-size:12px;font-weight:600;color:var(--danger)}
+    /* ── スピナー・トースト ── */
+    .spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:5px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 17px;font-size:13px;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,.5);opacity:0;transition:transform .25s,opacity .25s;pointer-events:none;z-index:9999;white-space:nowrap}
+    #toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+    @media(max-width:480px){.card{padding:24px 16px}.shop-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -255,24 +269,19 @@
 <!-- ════ 認証カード ════ -->
 <div class="card" id="auth-card">
   <div class="config-notice" id="setup-notice">
-    <h3>⚙️ セットアップ手順</h3>
-    下記2箇所をあなたの値に書き換えてください：
+    <h3>⚙️ セットアップ</h3>
+    SUPABASE_URL と SUPABASE_ANON_KEY を書き換えてください
     <code>const SUPABASE_URL = 'https://xxxx.supabase.co'<br>const SUPABASE_ANON_KEY = 'eyJh...'</code>
   </div>
-  <div class="logo">
-    <div class="logo-mark">M</div>
-    <span class="logo-name">MyApp</span>
-  </div>
+  <div class="logo"><div class="logo-mark">M</div><span class="logo-name">MyApp</span></div>
   <div class="auth-tabs">
     <button class="auth-tab active" type="button" onclick="switchAuthTab('login')">ログイン</button>
     <button class="auth-tab"        type="button" onclick="switchAuthTab('signup')">新規登録</button>
   </div>
   <div id="msg" class="msg" role="alert"></div>
-
-  <!-- ログイン -->
   <form id="login-form" onsubmit="handleLogin(event)" novalidate>
-    <div class="form-group"><label>メールアドレス</label><input type="email" id="login-email" autocomplete="email" placeholder="you@example.com" required /></div>
-    <div class="form-group"><label>パスワード</label><input type="password" id="login-password" autocomplete="current-password" placeholder="••••••••" required /></div>
+    <div class="form-group"><label>メールアドレス</label><input type="email" id="login-email" autocomplete="email" placeholder="you@example.com" required/></div>
+    <div class="form-group"><label>パスワード</label><input type="password" id="login-password" autocomplete="current-password" placeholder="••••••••" required/></div>
     <button type="submit" class="btn btn-primary" id="login-btn">ログイン</button>
     <div class="divider">または</div>
     <button type="button" class="btn btn-github" id="github-btn-login" onclick="handleGitHub()">
@@ -280,12 +289,10 @@
       GitHubでログイン
     </button>
   </form>
-
-  <!-- サインアップ -->
   <form id="signup-form" onsubmit="handleSignup(event)" novalidate style="display:none">
-    <div class="form-group"><label>メールアドレス</label><input type="email" id="signup-email" autocomplete="email" placeholder="you@example.com" required /></div>
-    <div class="form-group"><label>パスワード（6文字以上）</label><input type="password" id="signup-password" autocomplete="new-password" placeholder="••••••••" required /></div>
-    <div class="form-group"><label>パスワード確認</label><input type="password" id="signup-password2" autocomplete="new-password" placeholder="••••••••" required /></div>
+    <div class="form-group"><label>メールアドレス</label><input type="email" id="signup-email" autocomplete="email" placeholder="you@example.com" required/></div>
+    <div class="form-group"><label>パスワード（6文字以上）</label><input type="password" id="signup-password" autocomplete="new-password" placeholder="••••••••" required/></div>
+    <div class="form-group"><label>パスワード確認</label><input type="password" id="signup-password2" autocomplete="new-password" placeholder="••••••••" required/></div>
     <button type="submit" class="btn btn-primary" id="signup-btn">アカウント作成</button>
     <div class="divider">または</div>
     <button type="button" class="btn btn-github" id="github-btn-signup" onclick="handleGitHub()">
@@ -297,49 +304,36 @@
 
 <!-- ════ ダッシュボード ════ -->
 <div class="card" id="dashboard" style="display:none">
-
-  <!-- 上部ヘッダー -->
   <div class="dash-top">
-    <div class="logo" style="margin-bottom:0">
-      <div class="logo-mark">M</div>
-      <span class="logo-name">MyApp</span>
-    </div>
-    <div class="user-chip">
-      <div class="avatar" id="dash-avatar">?</div>
-      <span id="dash-email-short"></span>
+    <div class="logo" style="margin-bottom:0"><div class="logo-mark">M</div><span class="logo-name">MyApp</span></div>
+    <div style="display:flex;gap:7px;align-items:center">
+      <div class="pts-mini">🪙 <span id="pts-header">0</span></div>
+      <div class="user-chip"><div class="avatar" id="dash-avatar">?</div><span id="dash-email-short"></span></div>
     </div>
   </div>
-
-  <!-- ページナビ -->
-  <div class="page-nav">
+  <!-- 12タブナビ -->
+  <div class="page-nav" id="page-nav">
     <button class="page-btn active" type="button" onclick="switchPage('home')"><span class="pbi">🏠</span>ホーム</button>
-    <button class="page-btn"        type="button" onclick="switchPage('board')"><span class="pbi">📌</span>掲示板</button>
-    <button class="page-btn"        type="button" onclick="switchPage('chat')"><span class="pbi">💬</span>チャット</button>
-    <button class="page-btn"        type="button" onclick="switchPage('game')"><span class="pbi">🎮</span>ゲーム</button>
-    <button class="page-btn"        type="button" onclick="switchPage('settings')"><span class="pbi">⚙️</span>設定</button>
+    <button class="page-btn" type="button" onclick="switchPage('ranking')"><span class="pbi">🏆</span>ランキング</button>
+    <button class="page-btn" type="button" onclick="switchPage('stats')"><span class="pbi">📊</span>統計</button>
+    <button class="page-btn" type="button" id="nav-notif" onclick="switchPage('notif')"><span class="pbi">🔔</span>お知らせ</button>
+    <button class="page-btn" type="button" onclick="switchPage('friends')"><span class="pbi">👥</span>フレンド</button>
+    <button class="page-btn" type="button" id="nav-dm" onclick="switchPage('dm')"><span class="pbi">💌</span>DM</button>
+    <button class="page-btn" type="button" onclick="switchPage('board')"><span class="pbi">📌</span>掲示板</button>
+    <button class="page-btn" type="button" onclick="switchPage('chat')"><span class="pbi">💬</span>チャット</button>
+    <button class="page-btn" type="button" onclick="switchPage('missions')"><span class="pbi">🎯</span>ミッション</button>
+    <button class="page-btn" type="button" onclick="switchPage('shop')"><span class="pbi">🛒</span>ショップ</button>
+    <button class="page-btn" type="button" onclick="switchPage('game')"><span class="pbi">🎮</span>ゲーム</button>
+    <button class="page-btn" type="button" onclick="switchPage('settings')"><span class="pbi">⚙️</span>設定</button>
   </div>
 
-  <!-- ── ホームページ ── -->
+  <!-- ── ホーム ── -->
   <div id="page-home" class="page active">
-    <div class="sec">👤 アカウント情報</div>
-    <div class="info-grid">
-      <div class="info-tile"><div class="tl">メール</div><div class="tv" id="dash-email">—</div></div>
-      <div class="info-tile"><div class="tl">ユーザーID</div><div class="tv" id="dash-uid">—</div></div>
-      <div class="info-tile"><div class="tl">最終ログイン</div><div class="tv" id="dash-lastlogin">—</div></div>
-      <div class="info-tile"><div class="tl">認証方法</div><div class="tv" id="dash-provider">—</div></div>
-    </div>
-    <div class="sec">🪙 ポイント</div>
     <div class="pts-hero">
-      <div>
-        <div class="ph-label">保有ポイント</div>
-        <div class="ph-value" id="pts-value">—</div>
-        <div class="ph-sub" id="pts-rank">読み込み中…</div>
-      </div>
-      <div class="ph-icon">🏆</div>
+      <div><div class="ph-label">保有ポイント</div><div class="ph-value" id="pts-value">—</div><div class="ph-sub" id="pts-rank">読み込み中…</div></div>
+      <div style="font-size:38px">🏆</div>
     </div>
-    <div id="checkin-wrap">
-      <button type="button" class="checkin-btn" id="checkin-btn" onclick="handleCheckin()">📅 デイリーチェックイン（+10 pt）</button>
-    </div>
+    <div id="checkin-wrap"><button type="button" class="checkin-btn" id="checkin-btn" onclick="handleCheckin()">📅 デイリーチェックイン（+10 pt）</button></div>
     <div class="sec">⚡ アクション</div>
     <div class="action-row">
       <button type="button" class="action-btn" onclick="addPoints(20,'クエスト完了')"><span class="ab-pts earn">+20</span>クエスト完了</button>
@@ -348,61 +342,126 @@
       <button type="button" class="action-btn" onclick="addPoints(-100,'プレミアム')"><span class="ab-pts spend">-100</span>プレミアム</button>
     </div>
     <div class="sec">📋 ポイント履歴</div>
-    <div class="log-list" id="log-list"><div class="log-empty">読み込み中…</div></div>
-    <div style="height:16px"></div>
+    <div class="log-list" id="log-list"><div class="loading-msg">読み込み中…</div></div>
+    <div style="height:14px"></div>
     <button type="button" class="btn btn-ghost" onclick="handleLogout()">ログアウト</button>
   </div>
 
-  <!-- ── 掲示板ページ ── -->
+  <!-- ── ランキング ── -->
+  <div id="page-ranking" class="page">
+    <div class="sec">🏆 ポイントランキング TOP20</div>
+    <div class="rank-list" id="ranking-list"><div class="loading-msg">読み込み中…</div></div>
+  </div>
+
+  <!-- ── 統計 ── -->
+  <div id="page-stats" class="page">
+    <div class="sec">📊 過去7日間の推移</div>
+    <div class="chart-legend">
+      <span><span class="dot" style="background:#56cfad"></span>獲得</span>
+      <span><span class="dot" style="background:#f25f5c"></span>消費</span>
+    </div>
+    <div id="stats-chart" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px;margin-bottom:12px"><div class="loading-msg">読み込み中…</div></div>
+    <div class="stat-tiles">
+      <div class="stat-tile"><div class="stl">累計獲得</div><div class="stv" id="stat-earned" style="color:var(--success)">—</div></div>
+      <div class="stat-tile"><div class="stl">累計消費</div><div class="stv" id="stat-spent" style="color:var(--danger)">—</div></div>
+      <div class="stat-tile"><div class="stl">収支</div><div class="stv" id="stat-net">—</div></div>
+    </div>
+  </div>
+
+  <!-- ── お知らせ ── -->
+  <div id="page-notif" class="page">
+    <div class="notif-header">
+      <h3>🔔 お知らせ</h3>
+      <button type="button" class="mark-read-btn" onclick="markAllRead()">すべて既読</button>
+    </div>
+    <div class="notif-list" id="notif-list"><div class="loading-msg">読み込み中…</div></div>
+  </div>
+
+  <!-- ── フレンド ── -->
+  <div id="page-friends" class="page">
+    <div class="friend-tabs">
+      <button class="ftab active" type="button" onclick="switchFriendTab('all')">みんな</button>
+      <button class="ftab" type="button" onclick="switchFriendTab('following')">フォロー中</button>
+      <button class="ftab" type="button" onclick="switchFriendTab('followers')">フォロワー</button>
+    </div>
+    <div class="friend-list" id="friend-list"><div class="loading-msg">読み込み中…</div></div>
+  </div>
+
+  <!-- ── DM ── -->
+  <div id="page-dm" class="page">
+    <!-- 会話リスト -->
+    <div id="dm-list-view">
+      <div class="sec" style="margin-top:0">💌 ダイレクトメッセージ</div>
+      <div class="dm-list" id="dm-list"><div class="loading-msg">読み込み中…</div></div>
+    </div>
+    <!-- チャットビュー（非表示） -->
+    <div id="dm-chat-view" style="display:none">
+      <button type="button" class="dm-back-btn" onclick="closeDM()">← 戻る</button>
+      <div class="dm-partner-info">
+        <div class="avatar" id="dm-partner-av">?</div>
+        <div class="dm-partner-name" id="dm-partner-name">—</div>
+      </div>
+      <div class="chat-window" id="dm-window"><div class="chat-empty">メッセージを読み込み中…</div></div>
+      <div class="chat-compose">
+        <input type="text" class="chat-input" id="dm-input" placeholder="メッセージを入力…" maxlength="200"/>
+        <button type="button" class="chat-send" id="dm-send" onclick="sendDM()">送信</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 掲示板 ── -->
   <div id="page-board" class="page">
     <div class="post-compose">
       <textarea id="post-input" placeholder="みんなに共有したいことを書いてみよう…" maxlength="400"></textarea>
-      <div class="compose-footer">
-        <button type="button" class="post-submit" id="post-submit-btn" onclick="submitPost()">投稿する</button>
-      </div>
+      <div class="compose-footer"><button type="button" class="post-submit" id="post-submit-btn" onclick="submitPost()">投稿する</button></div>
     </div>
-    <div class="post-list" id="post-list"><div class="board-empty">読み込み中…</div></div>
+    <div class="post-list" id="post-list"><div class="loading-msg">読み込み中…</div></div>
   </div>
 
-  <!-- ── チャットページ ── -->
+  <!-- ── チャット ── -->
   <div id="page-chat" class="page">
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:12px;color:var(--muted)">
-      <span class="online-dot"></span>リアルタイム チャット
-    </div>
-    <div class="chat-window" id="chat-window">
-      <div class="chat-empty">メッセージを読み込み中…</div>
-    </div>
+    <div style="display:flex;align-items:center;gap:5px;margin-bottom:9px;font-size:12px;color:var(--muted)"><span class="online-dot"></span>グループチャット</div>
+    <div class="chat-window" id="chat-window"><div class="chat-empty">メッセージを読み込み中…</div></div>
     <div class="chat-compose">
-      <input type="text" class="chat-input" id="chat-input" placeholder="メッセージを入力…" maxlength="200" />
+      <input type="text" class="chat-input" id="chat-input" placeholder="メッセージを入力…" maxlength="200"/>
       <button type="button" class="chat-send" id="chat-send" onclick="sendMessage()">送信</button>
     </div>
   </div>
 
-  <!-- ── ゲームページ ── -->
+  <!-- ── ミッション ── -->
+  <div id="page-missions" class="page">
+    <div class="sec" style="margin-top:0">🎯 ミッション</div>
+    <div class="mission-list" id="mission-list"><div class="loading-msg">読み込み中…</div></div>
+  </div>
+
+  <!-- ── ショップ ── -->
+  <div id="page-shop" class="page">
+    <div class="sec" style="margin-top:0">🛒 ポイントショップ</div>
+    <div class="shop-grid" id="shop-grid"><div class="loading-msg">読み込み中…</div></div>
+  </div>
+
+  <!-- ── ゲーム ── -->
   <div id="page-game" class="page">
     <div class="game-wrap">
       <canvas id="game-canvas" width="388" height="520"></canvas>
-      <!-- スタート -->
       <div class="game-overlay" id="gov-start">
-        <div style="font-size:48px">🫧</div>
+        <div style="font-size:46px">🫧</div>
         <h2>バブルシューター</h2>
-        <p>同じ色を3つ以上つなげて消そう！<br>消すたびにポイント獲得。</p>
-        <div class="cost-glabel">開始コスト：<strong style="color:var(--text)">10 pt</strong></div>
+        <p>同じ色を3つ以上つなげて消そう！</p>
+        <div style="font-size:12px;color:var(--muted)">開始コスト：<strong style="color:var(--text)">10 pt</strong></div>
         <button type="button" class="btn-play-game" id="gbtn-start" onclick="gStartGame()">ゲームスタート</button>
         <div class="no-pts-warn" id="g-nopt" style="display:none">⚠️ ポイントが足りません</div>
       </div>
-      <!-- ゲームオーバー -->
       <div class="game-overlay" id="gov-over" style="display:none">
         <h2>💥 ゲームオーバー</h2>
         <div class="big-gnum" id="g-final">0</div>
         <div class="earn-glabel" id="g-earn">+0 pt 獲得！</div>
-        <p id="g-msg">次は頑張ろう！</p>
+        <p id="g-msg"></p>
         <button type="button" class="btn-play-game" id="gbtn-retry" onclick="gStartGame()">もう一度（-10pt）</button>
         <button type="button" class="btn-sub-game" onclick="gShowStart()">タイトルへ</button>
       </div>
-      <!-- クリア -->
       <div class="game-overlay" id="gov-clear" style="display:none">
-        <div style="font-size:48px">🎉</div>
+        <div style="font-size:46px">🎉</div>
         <h2>全消しクリア！</h2>
         <div class="big-gnum" id="g-cscore">0</div>
         <div class="earn-glabel" id="g-cearn">+0 pt 獲得！</div>
@@ -411,7 +470,6 @@
         <button type="button" class="btn-sub-game" onclick="gShowStart()">タイトルへ</button>
       </div>
     </div>
-    <!-- HUD -->
     <div class="game-hud">
       <div class="hud-tile"><div class="htl">スコア</div><div class="htv" id="g-hud-score">0</div></div>
       <div class="hud-tile"><div class="htl">残バブル</div><div class="htv" id="g-hud-bub">—</div></div>
@@ -419,21 +477,20 @@
     </div>
   </div>
 
-  <!-- ── 設定ページ ── -->
+  <!-- ── 設定 ── -->
   <div id="page-settings" class="page">
-
-    <!-- プロフィール -->
-    <div class="sec">👤 プロフィール</div>
+    <div class="sec" style="margin-top:0">👤 プロフィール</div>
     <div class="setting-group">
       <div class="setting-row col">
-        <div><div class="setting-label">表示名</div><div class="setting-sub">掲示板・チャットで使われる名前</div></div>
-        <div style="display:flex;gap:8px">
-          <input type="text" class="setting-input" id="set-displayname" placeholder="例: たろう" maxlength="20" />
-          <button type="button" class="setting-btn" onclick="saveDisplayName()">保存</button>
-        </div>
+        <div><div class="setting-label">表示名</div><div class="setting-sub">掲示板・チャット・ランキングに表示</div></div>
+        <div style="display:flex;gap:7px"><input type="text" class="setting-input" id="set-displayname" placeholder="例: たろう" maxlength="20"/><button type="button" class="setting-btn" onclick="saveDisplayName()">保存</button></div>
       </div>
       <div class="setting-row col">
-        <div><div class="setting-label">アバターカラー</div><div class="setting-sub">アイコンの背景色</div></div>
+        <div><div class="setting-label">アバター絵文字</div><div class="setting-sub">アイコンに表示する絵文字</div></div>
+        <div class="emoji-picker" id="emoji-picker"></div>
+      </div>
+      <div class="setting-row col">
+        <div><div class="setting-label">アバターカラー</div><div class="setting-sub">絵文字未設定時の背景色</div></div>
         <div class="color-swatches" id="color-swatches">
           <div class="swatch" style="background:#7c6cfc" data-color="#7c6cfc" onclick="selectColor(this)"></div>
           <div class="swatch" style="background:#f25f5c" data-color="#f25f5c" onclick="selectColor(this)"></div>
@@ -444,747 +501,900 @@
         </div>
       </div>
     </div>
-
-    <!-- メールアドレス変更 -->
     <div class="sec">📧 メールアドレス変更</div>
     <div class="setting-group">
       <div class="setting-row col">
-        <div><div class="setting-label">新しいメールアドレス</div><div class="setting-sub">確認メールが両方に送信されます</div></div>
-        <div style="display:flex;gap:8px">
-          <input type="email" class="setting-input" id="set-email" placeholder="new@example.com" />
-          <button type="button" class="setting-btn" onclick="changeEmail()">変更</button>
-        </div>
+        <div><div class="setting-label">新しいメールアドレス</div><div class="setting-sub">確認メールが送信されます</div></div>
+        <div style="display:flex;gap:7px"><input type="email" class="setting-input" id="set-email" placeholder="new@example.com"/><button type="button" class="setting-btn" onclick="changeEmail()">変更</button></div>
       </div>
     </div>
-
-    <!-- パスワード変更 -->
     <div class="sec">🔑 パスワード変更</div>
     <form onsubmit="changePassword(event)" novalidate>
     <div class="setting-group">
       <div class="setting-row col">
-        <div><div class="setting-label">新しいパスワード</div><div class="setting-sub">6文字以上で入力してください</div></div>
-        <input type="password" class="setting-input" id="set-pw1" placeholder="新しいパスワード" autocomplete="new-password" />
+        <div><div class="setting-label">新しいパスワード</div></div>
+        <input type="password" class="setting-input" id="set-pw1" placeholder="新しいパスワード（6文字以上）" autocomplete="new-password"/>
       </div>
       <div class="setting-row col">
         <div><div class="setting-label">パスワード確認</div></div>
-        <div style="display:flex;gap:8px">
-          <input type="password" class="setting-input" id="set-pw2" placeholder="もう一度入力" autocomplete="new-password" />
-          <button type="submit" class="setting-btn">変更</button>
-        </div>
+        <div style="display:flex;gap:7px"><input type="password" class="setting-input" id="set-pw2" placeholder="もう一度入力" autocomplete="new-password"/><button type="submit" class="setting-btn">変更</button></div>
       </div>
     </div>
     </form>
-
-    <!-- ログアウト -->
     <div class="sec">🚪 セッション</div>
     <div class="setting-group">
-      <div class="setting-row">
-        <div><div class="setting-label">ログアウト</div><div class="setting-sub">全デバイスでサインアウトします</div></div>
-        <button type="button" class="setting-btn ghost" onclick="handleLogout()">ログアウト</button>
-      </div>
+      <div class="setting-row"><div><div class="setting-label">ログアウト</div><div class="setting-sub">全デバイスでサインアウト</div></div><button type="button" class="setting-btn ghost" onclick="handleLogout()">ログアウト</button></div>
     </div>
-
-    <!-- 危険ゾーン -->
     <div class="sec" style="color:var(--danger)">⚠️ 危険ゾーン</div>
     <div class="danger-zone">
       <h4>アカウントを削除</h4>
-      <p>この操作は取り消せません。ポイント・投稿・メッセージを含むすべてのデータが完全に削除されます。</p>
+      <p>この操作は取り消せません。すべてのデータが削除されます。</p>
       <button type="button" class="btn-danger" onclick="deleteAccount()">アカウントを完全に削除する</button>
     </div>
-
-    <div style="height:8px"></div>
   </div>
-
 </div>
 
-<!-- トースト -->
 <div id="toast"></div>
 
 <script>
-/* ════ 設定 ════ */
+/* ═══════════════════════════════
+   設定
+   ═══════════════════════════════ */
 const SUPABASE_URL      = 'https://vnczqksvnkanymagrxbf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuY3pxa3N2bmthbnltYWdyeGJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU5MDg4MjgsImV4cCI6MjEwMTQ4NDgyOH0.2QFKJshh6Izg0Ch6FbZzNVHlz_-X6hygkITQ79MtmqI';
 
-/* ════ ストレージフォールバック ════ */
+/* ═══════════════════════════════
+   ミッション定義
+   ═══════════════════════════════ */
+const MISSIONS = [
+  {id:'first_post',  icon:'📌', name:'初めての投稿',   desc:'掲示板に1回投稿する',      goal:1,    reward:50,  type:'post'},
+  {id:'chat_10',     icon:'💬', name:'おしゃべり好き', desc:'チャットを10回送る',        goal:10,   reward:80,  type:'chat'},
+  {id:'like_10',     icon:'❤️', name:'いいね職人',     desc:'いいねを10回する',          goal:10,   reward:60,  type:'like'},
+  {id:'follow_3',    icon:'👥', name:'フォロワー',     desc:'3人フォローする',            goal:3,    reward:100, type:'follow'},
+  {id:'game_play5',  icon:'🎮', name:'ゲーマー',       desc:'ゲームを5回プレイ',         goal:5,    reward:150, type:'game'},
+  {id:'pts_500',     icon:'🪙', name:'ポイント貯め上手',desc:'合計500pt獲得',            goal:500,  reward:200, type:'pts_total'},
+  {id:'pts_2000',    icon:'💎', name:'ポイントマスター',desc:'合計2000pt獲得',           goal:2000, reward:500, type:'pts_total'},
+];
+
+/* ═══════════════════════════════
+   ショップ定義
+   ═══════════════════════════════ */
+const SHOP_ITEMS = [
+  {id:'title_star',  icon:'⭐', name:'スターの称号',     desc:'表示名の横に⭐が付く',    price:200, type:'title', value:'⭐'},
+  {id:'title_king',  icon:'👑', name:'キングの称号',     desc:'プレミアムな称号',         price:500, type:'title', value:'👑'},
+  {id:'title_ninja', icon:'🥷', name:'ニンジャの称号',   desc:'かっこいい称号',           price:300, type:'title', value:'🥷'},
+  {id:'emoji_fire',  icon:'🔥', name:'炎アバター',       desc:'アバターが🔥になる',       price:100, type:'emoji', value:'🔥'},
+  {id:'emoji_robot', icon:'🤖', name:'ロボットアバター', desc:'アバターが🤖になる',       price:150, type:'emoji', value:'🤖'},
+  {id:'boost_100',   icon:'🎁', name:'ポイントブースト', desc:'即時+100pt獲得',           price:80,  type:'boost', value:100},
+  {id:'boost_500',   icon:'💰', name:'大ブースト',       desc:'即時+500pt獲得',           price:350, type:'boost', value:500},
+];
+
+/* ═══════════════════════════════
+   アバター絵文字リスト
+   ═══════════════════════════════ */
+const AVATAR_EMOJIS = ['😊','😎','🤩','🥳','😏','🦊','🐧','🦋','🌟','⚡','🔥','💎','🎯','🚀','🎮','🐉','🦄','🤖','👻','🎃','🌈','🍀','🐱','🐼'];
+
+/* ═══════════════════════════════
+   Supabase
+   ═══════════════════════════════ */
+let sb, currentUserId = null, currentUserEmail = '', userPoints = 0;
 const safeStorage = {
-  _mem: {},
-  getItem(k)    { try { return localStorage.getItem(k); } catch { return this._mem[k] ?? null; } },
-  setItem(k, v) { try { localStorage.setItem(k, v); } catch { this._mem[k] = v; } try { sessionStorage.setItem(k, v); } catch {} },
-  removeItem(k) { try { localStorage.removeItem(k); } catch {} try { sessionStorage.removeItem(k); } catch {} delete this._mem[k]; }
+  _m:{},
+  getItem(k){try{return localStorage.getItem(k);}catch{return this._m[k]??null;}},
+  setItem(k,v){try{localStorage.setItem(k,v);}catch{this._m[k]=v;}try{sessionStorage.setItem(k,v);}catch{}},
+  removeItem(k){try{localStorage.removeItem(k);}catch{}try{sessionStorage.removeItem(k);}catch{}delete this._m[k];}
 };
 
-/* ════ Supabase 初期化 ════ */
-let sb;
 function initSupabase() {
-  const createClient = window.__supabaseCreateClient;
-  if (!createClient) return;
-  sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { storage: safeStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
-  if (SUPABASE_URL.includes('your-project')) { document.getElementById('setup-notice').style.display = 'block'; return; }
-  document.getElementById('setup-notice').style.display = 'none';
-  sb.auth.getSession().then(({ data: { session } }) => { if (session) showDashboard(session.user); });
-  sb.auth.onAuthStateChange((_e, session) => { if (session) showDashboard(session.user); else showAuth(); });
+  const cc = window.__supabaseCreateClient;
+  if(!cc) return;
+  sb = cc(SUPABASE_URL, SUPABASE_ANON_KEY, {auth:{storage:safeStorage,persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+  if(SUPABASE_URL.includes('your-project')){document.getElementById('setup-notice').style.display='block';return;}
+  document.getElementById('setup-notice').style.display='none';
+  sb.auth.getSession().then(({data:{session}})=>{if(session) onLogin(session.user);});
+  sb.auth.onAuthStateChange((_e,session)=>{if(session) onLogin(session.user); else showAuthCard();});
 }
 window.addEventListener('supabase-ready', initSupabase);
-if (window.__supabaseCreateClient) initSupabase();
+if(window.__supabaseCreateClient) initSupabase();
 
-/* ════ 認証タブ切り替え ════ */
-function switchAuthTab(tab) {
-  clearMsg();
-  document.querySelectorAll('.auth-tab').forEach((b, i) => b.classList.toggle('active', tab === 'login' ? i === 0 : i === 1));
-  document.getElementById('login-form').style.display  = tab === 'login'  ? '' : 'none';
-  document.getElementById('signup-form').style.display = tab === 'signup' ? '' : 'none';
-}
-
-/* ════ ログイン ════ */
-async function handleLogin(e) {
-  e.preventDefault();
-  if (!sb) return showMsg('Supabaseが初期化されていません', 'error');
-  const email = document.getElementById('login-email').value.trim();
-  const pw    = document.getElementById('login-password').value;
-  if (!email || !pw) return showMsg('メールとパスワードを入力してください', 'error');
-  setLoading('login-btn', true, 'ログイン');
-  const { error } = await sb.auth.signInWithPassword({ email, password: pw });
-  setLoading('login-btn', false, 'ログイン');
-  if (error) showMsg(te(error.message), 'error');
-}
-
-/* ════ サインアップ ════ */
-async function handleSignup(e) {
-  e.preventDefault();
-  if (!sb) return showMsg('Supabaseが初期化されていません', 'error');
-  const email = document.getElementById('signup-email').value.trim();
-  const pw    = document.getElementById('signup-password').value;
-  const pw2   = document.getElementById('signup-password2').value;
-  if (!email || !pw) return showMsg('メールとパスワードを入力してください', 'error');
-  if (pw !== pw2)    return showMsg('パスワードが一致しません', 'error');
-  if (pw.length < 6) return showMsg('パスワードは6文字以上にしてください', 'error');
-  setLoading('signup-btn', true, 'アカウント作成');
-  const { error } = await sb.auth.signUp({ email, password: pw });
-  setLoading('signup-btn', false, 'アカウント作成');
-  if (error) showMsg(te(error.message), 'error');
-  else showMsg('確認メールを送信しました。メールのリンクをクリックしてください。', 'success');
-}
-
-/* ════ GitHub ════ */
-async function handleGitHub() {
-  if (!sb) return showMsg('Supabaseが初期化されていません', 'error');
-  ['github-btn-login','github-btn-signup'].forEach(id => {
-    const b = document.getElementById(id);
-    if (b) { b.disabled = true; b.innerHTML = '<span class="spinner"></span>リダイレクト中…'; }
-  });
-  // GitHub Pages対応: hashやクエリを除いたクリーンなURLにリダイレクト
-  const redirectTo = window.location.origin + window.location.pathname;
-  const { error } = await sb.auth.signInWithOAuth({ provider: 'github', options: { redirectTo } });
-  if (error) {
-    showMsg(te(error.message), 'error');
-    ['github-btn-login','github-btn-signup'].forEach(id => {
-      const b = document.getElementById(id); if (b) { b.disabled = false; b.textContent = 'GitHubでログイン'; }
-    });
-  }
-}
-
-/* ════ ログアウト ════ */
-async function handleLogout() {
-  if (chatChannel) { await sb.removeChannel(chatChannel); chatChannel = null; }
-  if (sb) await sb.auth.signOut();
-}
-
-/* ════ UI: ダッシュボード表示 ════ */
-let currentUserId = null, currentUserEmail = '', userPoints = 0;
-
-function showDashboard(user) {
-  document.getElementById('auth-card').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'block';
+async function onLogin(user) {
   currentUserId    = user.id;
-  currentUserEmail = user.email || 'Unknown';
-  const short = currentUserEmail.split('@')[0];
-  document.getElementById('dash-email').textContent       = currentUserEmail;
-  document.getElementById('dash-uid').textContent         = (user.id || '').slice(0, 8) + '…';
-  document.getElementById('dash-email-short').textContent = short;
-  document.getElementById('dash-avatar').textContent      = short[0]?.toUpperCase() || '?';
-  document.getElementById('dash-provider').textContent    = user.app_metadata?.provider || 'email';
-  const last = user.last_sign_in_at;
-  document.getElementById('dash-lastlogin').textContent   = last ? new Date(last).toLocaleString('ja-JP',{dateStyle:'short',timeStyle:'short'}) : '—';
-  loadPoints(); loadHistory(); checkCheckin(); applyAvatarColor();
+  currentUserEmail = user.email || '';
+  document.getElementById('auth-card').style.display  = 'none';
+  document.getElementById('dashboard').style.display  = 'block';
+  // プロフィール初期化（メール保存）
+  const {data:prof} = await sb.from('profiles').select('*').eq('id',currentUserId).maybeSingle();
+  if(!prof){
+    await sb.from('profiles').insert({id:currentUserId,points:0,email:currentUserEmail});
+  } else if(!prof.email) {
+    await sb.from('profiles').update({email:currentUserEmail}).eq('id',currentUserId);
+  }
+  await refreshDashHeader();
+  await loadPoints();
+  await loadHistory();
+  await checkCheckin();
+  updateBadges();
+  buildEmojiPicker();
 }
-function showAuth() {
-  if (chatChannel) { sb.removeChannel(chatChannel); chatChannel = null; }
+function showAuthCard() {
+  if(chatChannel){sb.removeChannel(chatChannel);chatChannel=null;}
+  if(dmChannel){sb.removeChannel(dmChannel);dmChannel=null;}
   document.getElementById('auth-card').style.display = '';
   document.getElementById('dashboard').style.display = 'none';
   clearMsg();
 }
 
-/* ════ ページナビ ════ */
-function switchPage(page) {
-  document.querySelectorAll('.page-btn').forEach((b, i) => b.classList.toggle('active', ['home','board','chat','game','settings'][i] === page));
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + page).classList.add('active');
-  if (page === 'board')    loadPosts();
-  if (page === 'chat')     initChat();
-  if (page === 'game')     gInit();
-  if (page === 'settings') loadSettings();
+async function refreshDashHeader() {
+  const {data} = await sb.from('profiles').select('display_name,avatar_emoji,avatar_color,title').eq('id',currentUserId).maybeSingle();
+  const name = data?.display_name || currentUserEmail.split('@')[0] || '?';
+  document.getElementById('dash-email-short').textContent = name;
+  applyAvatar(document.getElementById('dash-avatar'), data);
 }
 
-/* ════ ポイントシステム ════ */
-async function loadPoints() {
-  const { data } = await sb.from('profiles').select('points').eq('id', currentUserId).maybeSingle();
-  if (data === null) {
-    const { error: ie } = await sb.from('profiles').insert({ id: currentUserId, points: 0 });
-    if (ie) await sb.from('profiles').update({ points: 0 }).eq('id', currentUserId);
-    renderPoints(0);
-  } else { renderPoints(data?.points ?? 0); }
-}
-function renderPoints(pts) {
-  userPoints = pts;
-  const el = document.getElementById('pts-value');
-  el.textContent = pts.toLocaleString();
-  el.classList.remove('pts-pop'); void el.offsetWidth; el.classList.add('pts-pop');
-  document.getElementById('pts-rank').textContent =
-    pts >= 10000 ? '🏅 ゴールド会員' : pts >= 3000 ? '🥈 シルバー会員' : pts >= 500 ? '🥉 ブロンズ会員' : '🌱 スターター';
-}
-async function addPoints(amount, reason) {
-  const { data } = await sb.from('profiles').select('points').eq('id', currentUserId).maybeSingle();
-  const next = Math.max(0, (data?.points ?? 0) + amount);
-  await sb.from('profiles').update({ points: next }).eq('id', currentUserId);
-  await sb.from('point_logs').insert({ user_id: currentUserId, amount, reason });
-  renderPoints(next); loadHistory();
-}
-async function handleCheckin() {
-  const btn = document.getElementById('checkin-btn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>処理中…';
-  await addPoints(10, 'デイリーチェックイン');
-  const today = new Date().toISOString().slice(0, 10);
-  await sb.from('profiles').update({ last_checkin: today }).eq('id', currentUserId);
-  document.getElementById('checkin-wrap').innerHTML = `<div class="checkin-done">✅ 本日のチェックイン完了！+10pt 獲得しました</div>`;
-}
-async function checkCheckin() {
-  const { data } = await sb.from('profiles').select('last_checkin').eq('id', currentUserId).maybeSingle();
-  if (data?.last_checkin === new Date().toISOString().slice(0, 10))
-    document.getElementById('checkin-wrap').innerHTML = `<div class="checkin-done">✅ 本日のチェックイン完了！明日また来てください</div>`;
-}
-async function loadHistory() {
-  const { data } = await sb.from('point_logs').select('amount,reason,created_at').eq('user_id', currentUserId).order('created_at',{ascending:false}).limit(10);
-  const list = document.getElementById('log-list');
-  if (!data || data.length === 0) { list.innerHTML = `<div class="log-empty">履歴がまだありません</div>`; return; }
-  list.innerHTML = data.map(r => {
-    const plus = r.amount >= 0;
-    const date = new Date(r.created_at).toLocaleString('ja-JP',{dateStyle:'short',timeStyle:'short'});
-    return `<div class="log-item"><div class="log-left"><span>${plus?'🟢':'🔴'}</span><div><div class="log-reason">${r.reason}</div><div class="log-date">${date}</div></div></div><div class="log-amt ${plus?'plus':'minus'}">${plus?'+':''}${r.amount} pt</div></div>`;
-  }).join('');
-}
-
-/* ════ 掲示板 ════ */
-async function loadPosts() {
-  document.getElementById('post-list').innerHTML = '<div class="board-empty">読み込み中…</div>';
-  const { data } = await sb.from('board_posts')
-    .select('id, user_id, user_email, content, created_at, board_likes(user_id)')
-    .order('created_at', { ascending: false }).limit(30);
-  renderPosts(data || []);
-}
-function renderPosts(posts) {
-  const list = document.getElementById('post-list');
-  if (posts.length === 0) { list.innerHTML = '<div class="board-empty">まだ投稿がありません。最初の投稿をしてみましょう！</div>'; return; }
-  list.innerHTML = posts.map(p => {
-    const short   = (p.user_email || 'user').split('@')[0];
-    const initial = short[0]?.toUpperCase() || '?';
-    const date    = new Date(p.created_at).toLocaleString('ja-JP',{dateStyle:'short',timeStyle:'short'});
-    const likes   = p.board_likes?.length ?? 0;
-    const liked   = p.board_likes?.some(l => l.user_id === currentUserId);
-    const isMine  = p.user_id === currentUserId;
-    return `
-      <div class="post-card" id="post-${p.id}">
-        <div class="post-header">
-          <div class="post-avatar">${initial}</div>
-          <div class="post-meta"><div class="post-author">${short}</div><div class="post-time">${date}</div></div>
-        </div>
-        <div class="post-body">${escHtml(p.content)}</div>
-        <div class="post-footer">
-          <button type="button" class="like-btn ${liked?'liked':''}" onclick="toggleLike('${p.id}', ${liked})">
-            ${liked?'♥':'♡'} ${likes}
-          </button>
-          ${isMine ? `<button type="button" class="del-btn" onclick="deletePost('${p.id}')">削除</button>` : ''}
-        </div>
-      </div>`;
-  }).join('');
-}
-async function submitPost() {
-  const ta  = document.getElementById('post-input');
-  const btn = document.getElementById('post-submit-btn');
-  const content = ta.value.trim();
-  if (!content) return;
-  btn.disabled = true; btn.textContent = '投稿中…';
-  const { error } = await sb.from('board_posts').insert({ user_id: currentUserId, user_email: currentUserEmail, content });
-  btn.disabled = false; btn.textContent = '投稿する';
-  if (!error) { ta.value = ''; loadPosts(); }
-}
-async function toggleLike(postId, isLiked) {
-  if (isLiked) {
-    await sb.from('board_likes').delete().eq('post_id', postId).eq('user_id', currentUserId);
+function applyAvatar(el, profile) {
+  if(!el) return;
+  if(profile?.avatar_emoji){
+    el.textContent = profile.avatar_emoji;
+    el.style.cssText = 'background:transparent;border:1px solid var(--border);font-size:16px';
   } else {
-    await sb.from('board_likes').insert({ post_id: postId, user_id: currentUserId });
+    const name = profile?.display_name || currentUserEmail.split('@')[0] || '?';
+    el.textContent = name[0].toUpperCase();
+    el.style.cssText = `background:${profile?.avatar_color||'#7c6cfc'};font-size:12px;border:none`;
   }
-  loadPosts();
-}
-async function deletePost(postId) {
-  if (!confirm('この投稿を削除しますか？')) return;
-  await sb.from('board_likes').delete().eq('post_id', postId);
-  await sb.from('board_posts').delete().eq('id', postId).eq('user_id', currentUserId);
-  loadPosts();
 }
 
-/* ════ チャット ════ */
-let chatChannel = null, chatMessages = [];
-
-async function initChat() {
-  if (chatChannel) return; // 既に購読中
-  // 過去50件を取得
-  const { data } = await sb.from('chat_messages')
-    .select('id, user_id, user_email, content, created_at')
-    .order('created_at', { ascending: true }).limit(50);
-  chatMessages = data || [];
-  renderChat();
-
-  // リアルタイム購読
-  chatChannel = sb.channel('chat-room')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, payload => {
-      chatMessages.push(payload.new);
-      renderChat();
-    })
-    .subscribe();
+function makeAvatarHTML(profile, size=30) {
+  const bg  = profile?.avatar_emoji ? 'transparent;border:1px solid var(--border)' : (profile?.avatar_color||'#7c6cfc');
+  const content = profile?.avatar_emoji || ((profile?.display_name||profile?.email||'?')[0].toUpperCase());
+  const fs  = profile?.avatar_emoji ? Math.round(size*.6)+'px' : Math.round(size*.45)+'px';
+  return `<div class="avatar" style="width:${size}px;height:${size}px;background:${bg};font-size:${fs};flex-shrink:0">${content}</div>`;
 }
-function renderChat() {
-  const win = document.getElementById('chat-window');
-  if (chatMessages.length === 0) {
-    win.innerHTML = '<div class="chat-empty">まだメッセージがありません</div>';
-    return;
+
+/* ═══════════════════════════════
+   認証
+   ═══════════════════════════════ */
+function switchAuthTab(tab){
+  clearMsg();
+  document.querySelectorAll('.auth-tab').forEach((b,i)=>b.classList.toggle('active',tab==='login'?i===0:i===1));
+  document.getElementById('login-form').style.display  = tab==='login' ? '' : 'none';
+  document.getElementById('signup-form').style.display = tab==='signup'? '' : 'none';
+}
+async function handleLogin(e){
+  e.preventDefault();
+  if(!sb) return showMsg('Supabaseが初期化されていません','error');
+  const email=document.getElementById('login-email').value.trim(), pw=document.getElementById('login-password').value;
+  if(!email||!pw) return showMsg('メールとパスワードを入力してください','error');
+  setLoading('login-btn',true,'ログイン');
+  const {error}=await sb.auth.signInWithPassword({email,password:pw});
+  setLoading('login-btn',false,'ログイン');
+  if(error) showMsg(te(error.message),'error');
+}
+async function handleSignup(e){
+  e.preventDefault();
+  if(!sb) return showMsg('Supabaseが初期化されていません','error');
+  const email=document.getElementById('signup-email').value.trim();
+  const pw=document.getElementById('signup-password').value, pw2=document.getElementById('signup-password2').value;
+  if(!email||!pw) return showMsg('メールとパスワードを入力してください','error');
+  if(pw!==pw2) return showMsg('パスワードが一致しません','error');
+  if(pw.length<6) return showMsg('パスワードは6文字以上にしてください','error');
+  setLoading('signup-btn',true,'アカウント作成');
+  const {error}=await sb.auth.signUp({email,password:pw});
+  setLoading('signup-btn',false,'アカウント作成');
+  if(error) showMsg(te(error.message),'error'); else showMsg('確認メールを送信しました。リンクをクリックしてください。','success');
+}
+async function handleGitHub(){
+  if(!sb) return showMsg('Supabaseが初期化されていません','error');
+  ['github-btn-login','github-btn-signup'].forEach(id=>{const b=document.getElementById(id);if(b){b.disabled=true;b.innerHTML='<span class="spinner"></span>リダイレクト中…';}});
+  const redirectTo=window.location.origin+window.location.pathname;
+  const {error}=await sb.auth.signInWithOAuth({provider:'github',options:{redirectTo}});
+  if(error){
+    showMsg(te(error.message),'error');
+    ['github-btn-login','github-btn-signup'].forEach(id=>{const b=document.getElementById(id);if(b){b.disabled=false;b.textContent='GitHubでログイン';}});
   }
-  win.innerHTML = chatMessages.map(m => {
-    const mine    = m.user_id === currentUserId;
-    const short   = (m.user_email || 'user').split('@')[0];
-    const initial = short[0]?.toUpperCase() || '?';
-    const time    = new Date(m.created_at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
-    return `
-      <div class="chat-msg ${mine ? 'mine' : ''}">
-        ${!mine ? `<div class="chat-av">${initial}</div>` : ''}
-        <div>
-          <div class="chat-name">${mine ? '' : short}</div>
-          <div style="display:flex;align-items:flex-end;gap:5px;${mine?'flex-direction:row-reverse':''}">
-            <div class="chat-bubble">${escHtml(m.content)}</div>
-            <div class="chat-ts">${time}</div>
-          </div>
-        </div>
-        ${mine ? `<div class="chat-av">${initial}</div>` : ''}
-      </div>`;
+}
+async function handleLogout(){
+  if(chatChannel){await sb.removeChannel(chatChannel);chatChannel=null;}
+  if(dmChannel){await sb.removeChannel(dmChannel);dmChannel=null;}
+  if(sb) await sb.auth.signOut();
+}
+
+/* ═══════════════════════════════
+   ページナビ
+   ═══════════════════════════════ */
+const PAGE_IDS=['home','ranking','stats','notif','friends','dm','board','chat','missions','shop','game','settings'];
+function switchPage(page){
+  document.querySelectorAll('.page-btn').forEach((b,i)=>b.classList.toggle('active',PAGE_IDS[i]===page));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const inits={ranking:loadRanking,stats:loadStats,notif:loadNotifications,friends:()=>loadFriends('all'),dm:loadDMList,board:loadPosts,chat:initGroupChat,missions:loadMissions,shop:loadShop,game:gInit,settings:loadSettings};
+  if(inits[page]) inits[page]();
+}
+
+/* ═══════════════════════════════
+   ホーム（ポイント）
+   ═══════════════════════════════ */
+async function loadPoints(){
+  const {data}=await sb.from('profiles').select('points').eq('id',currentUserId).maybeSingle();
+  if(data===null){await sb.from('profiles').update({points:0}).eq('id',currentUserId);renderPoints(0);}
+  else renderPoints(data?.points??0);
+}
+function renderPoints(pts){
+  userPoints=pts;
+  const el=document.getElementById('pts-value');
+  el.textContent=pts.toLocaleString();
+  el.classList.remove('pts-pop'); void el.offsetWidth; el.classList.add('pts-pop');
+  document.getElementById('pts-header').textContent=pts.toLocaleString();
+  document.getElementById('pts-rank').textContent=pts>=10000?'🏅 ゴールド会員':pts>=3000?'🥈 シルバー会員':pts>=500?'🥉 ブロンズ会員':'🌱 スターター';
+}
+async function addPoints(amount,reason){
+  const {data}=await sb.from('profiles').select('points').eq('id',currentUserId).maybeSingle();
+  const next=Math.max(0,(data?.points??0)+amount);
+  await sb.from('profiles').update({points:next}).eq('id',currentUserId);
+  await sb.from('point_logs').insert({user_id:currentUserId,amount,reason});
+  renderPoints(next); loadHistory();
+  if(amount>0) await checkMissionProgress('pts_total',0);
+  gUpdateStartBtn();
+}
+async function handleCheckin(){
+  const btn=document.getElementById('checkin-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>処理中…';
+  await addPoints(10,'デイリーチェックイン');
+  const today=new Date().toISOString().slice(0,10);
+  await sb.from('profiles').update({last_checkin:today}).eq('id',currentUserId);
+  document.getElementById('checkin-wrap').innerHTML='<div class="checkin-done">✅ 本日のチェックイン完了！+10pt 獲得しました</div>';
+  await sendNotification(currentUserId,'system','デイリーチェックイン完了！+10pt 獲得しました');
+}
+async function checkCheckin(){
+  const {data}=await sb.from('profiles').select('last_checkin').eq('id',currentUserId).maybeSingle();
+  if(data?.last_checkin===new Date().toISOString().slice(0,10))
+    document.getElementById('checkin-wrap').innerHTML='<div class="checkin-done">✅ 本日のチェックイン完了！明日また来てください</div>';
+}
+async function loadHistory(){
+  const {data}=await sb.from('point_logs').select('amount,reason,created_at').eq('user_id',currentUserId).order('created_at',{ascending:false}).limit(12);
+  const list=document.getElementById('log-list');
+  if(!data?.length){list.innerHTML='<div class="empty-msg">履歴がまだありません</div>';return;}
+  list.innerHTML=data.map(r=>{
+    const plus=r.amount>=0, date=new Date(r.created_at).toLocaleString('ja-JP',{dateStyle:'short',timeStyle:'short'});
+    return `<div class="log-item"><div class="log-left"><span>${plus?'🟢':'🔴'}</span><div><div class="log-reason">${escHtml(r.reason)}</div><div class="log-date">${date}</div></div></div><div class="log-amt ${plus?'plus':'minus'}">${plus?'+':''}${r.amount} pt</div></div>`;
   }).join('');
-  win.scrollTop = win.scrollHeight;
 }
-async function sendMessage() {
-  const input = document.getElementById('chat-input');
-  const btn   = document.getElementById('chat-send');
-  const content = input.value.trim();
-  if (!content) return;
-  input.value = ''; btn.disabled = true;
-  await sb.from('chat_messages').insert({ user_id: currentUserId, user_email: currentUserEmail, content });
-  btn.disabled = false; input.focus();
+
+/* ═══════════════════════════════
+   ランキング
+   ═══════════════════════════════ */
+async function loadRanking(){
+  const list=document.getElementById('ranking-list');
+  list.innerHTML='<div class="loading-msg">読み込み中…</div>';
+  const {data}=await sb.from('profiles').select('id,display_name,email,avatar_emoji,avatar_color,title,points').order('points',{ascending:false}).limit(20);
+  if(!data?.length){list.innerHTML='<div class="empty-msg">データがありません</div>';return;}
+  list.innerHTML=data.map((p,i)=>{
+    const rank=i+1, medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`#${rank}`;
+    const name=escHtml(p.display_name||p.email?.split('@')[0]||'Unknown');
+    const isMe=p.id===currentUserId;
+    const avBg=p.avatar_emoji?'transparent;border:1px solid var(--border)':(p.avatar_color||'#7c6cfc');
+    const avContent=p.avatar_emoji||(p.display_name||p.email||'?')[0].toUpperCase();
+    const avFs=p.avatar_emoji?'15px':'13px';
+    return `<div class="rank-item ${isMe?'rank-me':''}">
+      <div class="rank-num">${medal}</div>
+      <div class="rank-av" style="background:${avBg};font-size:${avFs}">${avContent}</div>
+      <div class="rank-info">
+        <div class="rank-name">${name}${p.title?` <span class="rank-title">${p.title}</span>`:''}</div>
+        <div class="rank-pts">🪙 ${(p.points||0).toLocaleString()} pt</div>
+      </div>
+      ${isMe?'<div class="rank-me-badge">あなた</div>':`<button class="dm-quick-btn" onclick='openDM(${JSON.stringify({id:p.id,email:p.email||"",display_name:p.display_name||"",avatar_emoji:p.avatar_emoji||"",avatar_color:p.avatar_color||""})})'>💌</button>`}
+    </div>`;
+  }).join('');
 }
-// Enterキーで送信
-document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.activeElement.id === 'chat-input' && !e.shiftKey) {
-    e.preventDefault(); sendMessage();
+
+/* ═══════════════════════════════
+   統計グラフ
+   ═══════════════════════════════ */
+async function loadStats(){
+  document.getElementById('stats-chart').innerHTML='<div class="loading-msg">読み込み中…</div>';
+  const {data}=await sb.from('point_logs').select('amount,created_at').eq('user_id',currentUserId).order('created_at',{ascending:false}).limit(200);
+  const days={};
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days[d.toISOString().slice(0,10)]={earn:0,spend:0};}
+  let totalEarn=0,totalSpend=0;
+  (data||[]).forEach(r=>{
+    const k=r.created_at.slice(0,10);
+    if(days[k]){if(r.amount>0){days[k].earn+=r.amount;totalEarn+=r.amount;}else{days[k].spend+=Math.abs(r.amount);totalSpend+=Math.abs(r.amount);}}
+  });
+  const dayArr=Object.entries(days);
+  const maxVal=Math.max(...dayArr.map(([,v])=>Math.max(v.earn,v.spend)),10);
+  const W=400,H=100,BW=22,GAP=(W-32)/dayArr.length;
+  const bars=dayArr.map(([date,{earn,spend}],i)=>{
+    const x=16+i*GAP+(GAP-BW)/2;
+    const eH=Math.round((earn/maxVal)*(H-16));
+    const sH=Math.round((spend/maxVal)*(H-16));
+    const label=date.slice(8);
+    return `<rect x="${x}" y="${H-4-eH}" width="${BW/2}" height="${eH||1}" fill="#56cfad" rx="2"/>
+      <rect x="${x+BW/2}" y="${H-4-sH}" width="${BW/2}" height="${sH||1}" fill="#f25f5c" rx="2"/>
+      <text x="${x+BW/2}" y="${H+8}" text-anchor="middle" font-size="9" fill="#7777a0">${label}日</text>`;
+  }).join('');
+  document.getElementById('stats-chart').innerHTML=`<svg viewBox="0 0 ${W} ${H+16}" width="100%" xmlns="http://www.w3.org/2000/svg">${bars}</svg>`;
+  document.getElementById('stat-earned').textContent=totalEarn.toLocaleString();
+  document.getElementById('stat-spent').textContent=totalSpend.toLocaleString();
+  const net=totalEarn-totalSpend;
+  const netEl=document.getElementById('stat-net');
+  netEl.textContent=(net>=0?'+':'')+net.toLocaleString();
+  netEl.style.color=net>=0?'var(--success)':'var(--danger)';
+}
+
+/* ═══════════════════════════════
+   お知らせ
+   ═══════════════════════════════ */
+async function sendNotification(userId,type,message){
+  if(!sb||!userId) return;
+  await sb.from('notifications').insert({user_id:userId,type,message});
+  if(userId===currentUserId) updateBadges();
+}
+async function loadNotifications(){
+  const list=document.getElementById('notif-list');
+  list.innerHTML='<div class="loading-msg">読み込み中…</div>';
+  const {data}=await sb.from('notifications').select('*').eq('user_id',currentUserId).order('created_at',{ascending:false}).limit(30);
+  if(!data?.length){list.innerHTML='<div class="empty-msg">お知らせはありません</div>';return;}
+  const icons={mission:'🎯',follow:'👥',like:'❤️',dm:'💌',system:'📢'};
+  list.innerHTML=data.map(n=>{
+    const date=new Date(n.created_at).toLocaleString('ja-JP',{dateStyle:'short',timeStyle:'short'});
+    return `<div class="notif-item ${n.is_read?'':'unread'}"><div class="notif-icon">${icons[n.type]||'🔔'}</div><div><div class="notif-msg">${escHtml(n.message)}</div><div class="notif-time">${date}</div></div></div>`;
+  }).join('');
+  // 既読にする
+  await sb.from('notifications').update({is_read:true}).eq('user_id',currentUserId).eq('is_read',false);
+  updateBadges();
+}
+async function markAllRead(){
+  await sb.from('notifications').update({is_read:true}).eq('user_id',currentUserId);
+  loadNotifications(); updateBadges();
+}
+async function updateBadges(){
+  if(!sb||!currentUserId) return;
+  const {count:nc}=await sb.from('notifications').select('*',{count:'exact',head:true}).eq('user_id',currentUserId).eq('is_read',false);
+  setNavBadge('nav-notif',nc||0);
+  const {count:dc}=await sb.from('direct_messages').select('*',{count:'exact',head:true}).eq('to_id',currentUserId).is('read_at',null);
+  setNavBadge('nav-dm',dc||0);
+}
+function setNavBadge(navId,count){
+  const el=document.getElementById(navId); if(!el) return;
+  let badge=el.querySelector('.nav-badge');
+  if(count>0){if(!badge){badge=document.createElement('span');badge.className='nav-badge';el.prepend(badge);}badge.textContent=count>9?'9+':count;}
+  else if(badge) badge.remove();
+}
+
+/* ═══════════════════════════════
+   フレンド・フォロー
+   ═══════════════════════════════ */
+let currentFriendTab='all';
+function switchFriendTab(tab){
+  currentFriendTab=tab;
+  document.querySelectorAll('.ftab').forEach((b,i)=>b.classList.toggle('active',['all','following','followers'][i]===tab));
+  loadFriends(tab);
+}
+async function loadFriends(tab='all'){
+  const list=document.getElementById('friend-list');
+  list.innerHTML='<div class="loading-msg">読み込み中…</div>';
+  let users=[];
+  if(tab==='all'){
+    const {data}=await sb.from('profiles').select('id,display_name,email,avatar_emoji,avatar_color,title,points').neq('id',currentUserId).order('points',{ascending:false}).limit(30);
+    users=data||[];
+  } else if(tab==='following'){
+    const {data}=await sb.from('follows').select('following_id,profiles!follows_following_id_fkey(id,display_name,email,avatar_emoji,avatar_color,title,points)').eq('follower_id',currentUserId);
+    users=(data||[]).map(d=>d.profiles).filter(Boolean);
+  } else {
+    const {data}=await sb.from('follows').select('follower_id,profiles!follows_follower_id_fkey(id,display_name,email,avatar_emoji,avatar_color,title,points)').eq('following_id',currentUserId);
+    users=(data||[]).map(d=>d.profiles).filter(Boolean);
   }
+  if(!users.length){list.innerHTML='<div class="empty-msg">ユーザーが見つかりません</div>';return;}
+  // フォロー中一覧を取得
+  const {data:myFollows}=await sb.from('follows').select('following_id').eq('follower_id',currentUserId);
+  const followingSet=new Set((myFollows||[]).map(f=>f.following_id));
+  list.innerHTML=users.map(p=>{
+    const name=escHtml(p.display_name||p.email?.split('@')[0]||'Unknown');
+    const avBg=p.avatar_emoji?'transparent;border:1px solid var(--border)':(p.avatar_color||'#7c6cfc');
+    const avCt=p.avatar_emoji||(p.display_name||p.email||'?')[0].toUpperCase();
+    const avFs=p.avatar_emoji?'14px':'12px';
+    const isFollowing=followingSet.has(p.id);
+    return `<div class="friend-item">
+      <div class="avatar" style="width:34px;height:34px;background:${avBg};font-size:${avFs};flex-shrink:0">${avCt}</div>
+      <div class="friend-info"><div class="friend-name">${name}${p.title?` <span style="color:var(--gold);font-size:11px">${p.title}</span>`:''}</div><div class="friend-pts">🪙 ${(p.points||0).toLocaleString()} pt</div></div>
+      <button class="dm-quick-btn" onclick='openDM(${JSON.stringify({id:p.id,email:p.email||"",display_name:p.display_name||"",avatar_emoji:p.avatar_emoji||"",avatar_color:p.avatar_color||""})})'>💌</button>
+      <button class="follow-btn ${isFollowing?'following':''}" onclick="toggleFollow('${p.id}',${isFollowing})">${isFollowing?'フォロー中':'フォロー'}</button>
+    </div>`;
+  }).join('');
+}
+async function toggleFollow(targetId,isFollowing){
+  if(isFollowing){
+    await sb.from('follows').delete().eq('follower_id',currentUserId).eq('following_id',targetId);
+  } else {
+    await sb.from('follows').insert({follower_id:currentUserId,following_id:targetId});
+    // フォロー通知
+    const {data:me}=await sb.from('profiles').select('display_name,email').eq('id',currentUserId).maybeSingle();
+    const meName=me?.display_name||me?.email?.split('@')[0]||'誰か';
+    await sendNotification(targetId,'follow',`${meName}さんがあなたをフォローしました`);
+    await checkMissionProgress('follow',1);
+  }
+  loadFriends(currentFriendTab);
+}
+
+/* ═══════════════════════════════
+   DM
+   ═══════════════════════════════ */
+let dmPartner=null, dmChannel=null, dmMessages=[];
+async function loadDMList(){
+  document.getElementById('dm-list-view').style.display='';
+  document.getElementById('dm-chat-view').style.display='none';
+  const list=document.getElementById('dm-list');
+  list.innerHTML='<div class="loading-msg">読み込み中…</div>';
+  const {data}=await sb.from('direct_messages').select('*').or(`from_id.eq.${currentUserId},to_id.eq.${currentUserId}`).order('created_at',{ascending:false});
+  if(!data?.length){list.innerHTML='<div class="empty-msg">DMはまだありません<br><span style="font-size:12px;color:var(--muted)">ランキングやフレンドから💌を押して始めよう</span></div>';return;}
+  const convs={};
+  data.forEach(msg=>{
+    const pid=msg.from_id===currentUserId?msg.to_id:msg.from_id;
+    if(!convs[pid]) convs[pid]={lastMsg:msg,unread:0};
+    if(msg.to_id===currentUserId&&!msg.read_at) convs[pid].unread++;
+  });
+  // パートナープロフィール取得
+  const pids=Object.keys(convs);
+  const {data:profs}=await sb.from('profiles').select('id,display_name,email,avatar_emoji,avatar_color').in('id',pids);
+  const profMap={};(profs||[]).forEach(p=>profMap[p.id]=p);
+  list.innerHTML=pids.map(pid=>{
+    const p=profMap[pid]||{id:pid,email:'Unknown'};
+    const name=escHtml(p.display_name||p.email?.split('@')[0]||'Unknown');
+    const {lastMsg,unread}=convs[pid];
+    const time=new Date(lastMsg.created_at).toLocaleString('ja-JP',{dateStyle:'short',timeStyle:'short'});
+    const avBg=p.avatar_emoji?'transparent;border:1px solid var(--border)':(p.avatar_color||'#7c6cfc');
+    const avCt=p.avatar_emoji||(p.display_name||p.email||'?')[0].toUpperCase();
+    return `<div class="dm-conv-item" onclick='openDM(${JSON.stringify({id:p.id,email:p.email||"",display_name:p.display_name||"",avatar_emoji:p.avatar_emoji||"",avatar_color:p.avatar_color||""})})'>
+      <div class="avatar" style="width:36px;height:36px;background:${avBg};font-size:${p.avatar_emoji?'16px':'13px'};flex-shrink:0">${avCt}</div>
+      <div class="dm-conv-info"><div class="dm-conv-name">${name}</div><div class="dm-conv-last">${escHtml(lastMsg.content)}</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <div class="dm-conv-time">${time}</div>
+        ${unread>0?`<div class="nav-badge" style="position:static">${unread}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+async function openDM(partner){
+  if(typeof partner==='string') partner=JSON.parse(partner);
+  dmPartner=partner;
+  document.getElementById('dm-list-view').style.display='none';
+  document.getElementById('dm-chat-view').style.display='';
+  document.getElementById('dm-partner-name').textContent=partner.display_name||partner.email?.split('@')[0]||'Unknown';
+  const avEl=document.getElementById('dm-partner-av');
+  avEl.textContent=partner.avatar_emoji||(partner.display_name||partner.email||'?')[0].toUpperCase();
+  avEl.style.cssText=partner.avatar_emoji?'background:transparent;border:1px solid var(--border);font-size:16px':`background:${partner.avatar_color||'#7c6cfc'}`;
+  // 既読化
+  await sb.from('direct_messages').update({read_at:new Date().toISOString()}).eq('from_id',partner.id).eq('to_id',currentUserId).is('read_at',null);
+  updateBadges();
+  // メッセージ取得
+  const {data}=await sb.from('direct_messages').select('*').or(`and(from_id.eq.${currentUserId},to_id.eq.${partner.id}),and(from_id.eq.${partner.id},to_id.eq.${currentUserId})`).order('created_at',{ascending:true}).limit(60);
+  dmMessages=data||[];
+  renderDMChat();
+  // リアルタイム購読
+  if(dmChannel) await sb.removeChannel(dmChannel);
+  dmChannel=sb.channel('dm-'+[currentUserId,partner.id].sort().join('-'))
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'direct_messages'},payload=>{
+      const m=payload.new;
+      if((m.from_id===currentUserId&&m.to_id===partner.id)||(m.from_id===partner.id&&m.to_id===currentUserId)){
+        dmMessages.push(m);
+        renderDMChat();
+        if(m.to_id===currentUserId) sb.from('direct_messages').update({read_at:new Date().toISOString()}).eq('id',m.id);
+      }
+    }).subscribe();
+  // ページがDMでなければ切り替え
+  if(!document.getElementById('page-dm').classList.contains('active')) switchPage('dm');
+}
+function closeDM(){
+  if(dmChannel){sb.removeChannel(dmChannel);dmChannel=null;}
+  dmPartner=null; dmMessages=[];
+  loadDMList();
+}
+function renderDMChat(){
+  const win=document.getElementById('dm-window');
+  if(!dmMessages.length){win.innerHTML='<div class="chat-empty">メッセージを送ってみよう</div>';return;}
+  win.innerHTML=dmMessages.map(m=>{
+    const mine=m.from_id===currentUserId;
+    const time=new Date(m.created_at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+    const av=mine?(document.getElementById('dash-avatar').textContent||'?'):(dmPartner?.avatar_emoji||(dmPartner?.display_name||dmPartner?.email||'?')[0].toUpperCase());
+    const avBg=mine?'var(--accent)':(dmPartner?.avatar_emoji?'transparent;border:1px solid var(--border)':(dmPartner?.avatar_color||'#7c6cfc'));
+    return `<div class="chat-msg ${mine?'mine':''}">
+      <div class="chat-av" style="background:${avBg};font-size:${(mine&&!document.getElementById('dash-avatar').style.fontSize)||(!mine&&!dmPartner?.avatar_emoji)?'':'13px'}">${av}</div>
+      <div><div style="display:flex;align-items:flex-end;gap:4px;${mine?'flex-direction:row-reverse':''}"><div class="chat-bubble">${escHtml(m.content)}</div><div class="chat-ts">${time}</div></div></div>
+    </div>`;
+  }).join('');
+  win.scrollTop=win.scrollHeight;
+}
+async function sendDM(){
+  if(!dmPartner) return;
+  const input=document.getElementById('dm-input'), btn=document.getElementById('dm-send');
+  const content=input.value.trim(); if(!content) return;
+  input.value=''; btn.disabled=true;
+  await sb.from('direct_messages').insert({from_id:currentUserId,to_id:dmPartner.id,content});
+  // 通知
+  const {data:me}=await sb.from('profiles').select('display_name,email').eq('id',currentUserId).maybeSingle();
+  const meName=me?.display_name||me?.email?.split('@')[0]||'誰か';
+  await sendNotification(dmPartner.id,'dm',`${meName}さんからメッセージが届きました`);
+  btn.disabled=false; document.getElementById('dm-input').focus();
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.activeElement.id==='dm-input'&&!e.shiftKey){e.preventDefault();sendDM();}
+  if(e.key==='Enter'&&document.activeElement.id==='chat-input'&&!e.shiftKey){e.preventDefault();sendMessage();}
 });
 
-/* ════ アカウント設定 ════ */
-async function loadSettings() {
-  const { data } = await sb.from('profiles').select('display_name, avatar_color').eq('id', currentUserId).maybeSingle();
-  if (data?.display_name) document.getElementById('set-displayname').value = data.display_name;
-  if (data?.avatar_color) {
-    document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('selected', s.dataset.color === data.avatar_color));
+/* ═══════════════════════════════
+   掲示板
+   ═══════════════════════════════ */
+async function loadPosts(){
+  document.getElementById('post-list').innerHTML='<div class="loading-msg">読み込み中…</div>';
+  const {data}=await sb.from('board_posts').select('id,user_id,user_email,content,created_at,board_likes(user_id)').order('created_at',{ascending:false}).limit(30);
+  renderPosts(data||[]);
+}
+function renderPosts(posts){
+  const list=document.getElementById('post-list');
+  if(!posts.length){list.innerHTML='<div class="empty-msg">まだ投稿がありません</div>';return;}
+  list.innerHTML=posts.map(p=>{
+    const short=(p.user_email||'user').split('@')[0];
+    const date=new Date(p.created_at).toLocaleString('ja-JP',{dateStyle:'short',timeStyle:'short'});
+    const likes=p.board_likes?.length??0, liked=p.board_likes?.some(l=>l.user_id===currentUserId);
+    const isMine=p.user_id===currentUserId;
+    return `<div class="post-card"><div class="post-header"><div class="post-avatar">${short[0].toUpperCase()}</div><div><div class="post-author">${escHtml(short)}</div><div class="post-time">${date}</div></div></div>
+      <div class="post-body">${escHtml(p.content)}</div>
+      <div class="post-footer">
+        <button type="button" class="like-btn ${liked?'liked':''}" onclick="toggleLike('${p.id}',${liked})">${liked?'♥':'♡'} ${likes}</button>
+        ${isMine?`<button type="button" class="del-btn" onclick="deletePost('${p.id}')">削除</button>`:''}
+      </div></div>`;
+  }).join('');
+}
+async function submitPost(){
+  const ta=document.getElementById('post-input'), btn=document.getElementById('post-submit-btn');
+  const content=ta.value.trim(); if(!content) return;
+  btn.disabled=true; btn.textContent='投稿中…';
+  const {error}=await sb.from('board_posts').insert({user_id:currentUserId,user_email:currentUserEmail,content});
+  btn.disabled=false; btn.textContent='投稿する';
+  if(!error){ta.value=''; loadPosts(); await checkMissionProgress('post',1);}
+}
+async function toggleLike(postId,isLiked){
+  if(isLiked){
+    await sb.from('board_likes').delete().eq('post_id',postId).eq('user_id',currentUserId);
+  } else {
+    await sb.from('board_likes').insert({post_id:postId,user_id:currentUserId});
+    await checkMissionProgress('like',1);
+    // 投稿主に通知
+    const {data:post}=await sb.from('board_posts').select('user_id,user_email').eq('id',postId).maybeSingle();
+    if(post&&post.user_id!==currentUserId){
+      const {data:me}=await sb.from('profiles').select('display_name,email').eq('id',currentUserId).maybeSingle();
+      const meName=me?.display_name||me?.email?.split('@')[0]||'誰か';
+      await sendNotification(post.user_id,'like',`${meName}さんがあなたの投稿にいいねしました`);
+    }
+  }
+  loadPosts();
+}
+async function deletePost(postId){
+  if(!confirm('この投稿を削除しますか？')) return;
+  await sb.from('board_likes').delete().eq('post_id',postId);
+  await sb.from('board_posts').delete().eq('id',postId).eq('user_id',currentUserId);
+  loadPosts();
+}
+
+/* ═══════════════════════════════
+   グループチャット
+   ═══════════════════════════════ */
+let chatChannel=null, chatMessages=[];
+async function initGroupChat(){
+  if(chatChannel) return;
+  const {data}=await sb.from('chat_messages').select('*').order('created_at',{ascending:true}).limit(50);
+  chatMessages=data||[]; renderGroupChat();
+  chatChannel=sb.channel('chat-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},payload=>{
+    chatMessages.push(payload.new); renderGroupChat();
+  }).subscribe();
+}
+function renderGroupChat(){
+  const win=document.getElementById('chat-window');
+  if(!chatMessages.length){win.innerHTML='<div class="chat-empty">まだメッセージがありません</div>';return;}
+  win.innerHTML=chatMessages.map(m=>{
+    const mine=m.user_id===currentUserId;
+    const short=(m.user_email||'user').split('@')[0];
+    const time=new Date(m.created_at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="chat-msg ${mine?'mine':''}">
+      ${!mine?`<div class="chat-av">${short[0].toUpperCase()}</div>`:''}
+      <div><div class="chat-name">${mine?'':escHtml(short)}</div>
+        <div style="display:flex;align-items:flex-end;gap:4px;${mine?'flex-direction:row-reverse':''}"><div class="chat-bubble">${escHtml(m.content)}</div><div class="chat-ts">${time}</div></div>
+      </div>
+      ${mine?`<div class="chat-av" style="background:var(--accent)">${short[0].toUpperCase()}</div>`:''}
+    </div>`;
+  }).join('');
+  win.scrollTop=win.scrollHeight;
+}
+async function sendMessage(){
+  const input=document.getElementById('chat-input'), btn=document.getElementById('chat-send');
+  const content=input.value.trim(); if(!content) return;
+  input.value=''; btn.disabled=true;
+  await sb.from('chat_messages').insert({user_id:currentUserId,user_email:currentUserEmail,content});
+  btn.disabled=false; input.focus();
+  await checkMissionProgress('chat',1);
+}
+
+/* ═══════════════════════════════
+   ミッション
+   ═══════════════════════════════ */
+async function loadMissions(){
+  const list=document.getElementById('mission-list');
+  list.innerHTML='<div class="loading-msg">読み込み中…</div>';
+  const {data}=await sb.from('user_missions').select('*').eq('user_id',currentUserId);
+  const progMap={}; (data||[]).forEach(d=>progMap[d.mission_id]=d);
+  list.innerHTML=MISSIONS.map(m=>{
+    const prog=progMap[m.id];
+    const cur=Math.min(prog?.progress??0, m.goal);
+    const done=prog?.completed||false;
+    const pct=Math.round((cur/m.goal)*100);
+    return `<div class="mission-card ${done?'completed':''}">
+      <div class="mission-top">
+        <div class="mission-icon">${m.icon}</div>
+        <div><div class="mission-name">${m.name}</div><div class="mission-desc">${m.desc}</div></div>
+        <div class="mission-reward">+${m.reward}pt</div>
+      </div>
+      ${done
+        ? '<div class="mission-done-badge">✅ 達成済み！</div>'
+        : `<div class="prog-bar-wrap"><div class="prog-bar-fill ${done?'done':''}" style="width:${pct}%"></div></div>
+           <div class="prog-label"><span>進捗</span><span>${cur}/${m.goal}</span></div>`}
+    </div>`;
+  }).join('');
+}
+async function checkMissionProgress(type,increment){
+  if(!sb||!currentUserId) return;
+  const relevant=MISSIONS.filter(m=>m.type===type);
+  if(!relevant.length) return;
+  for(const mission of relevant){
+    const {data}=await sb.from('user_missions').select('progress,completed').eq('user_id',currentUserId).eq('mission_id',mission.id).maybeSingle();
+    if(data?.completed) continue;
+    let newProg;
+    if(mission.type==='pts_total'){newProg=userPoints;}
+    else{newProg=(data?.progress||0)+increment;}
+    const completed=newProg>=mission.goal;
+    await sb.from('user_missions').upsert({user_id:currentUserId,mission_id:mission.id,progress:newProg,completed,completed_at:completed?new Date().toISOString():null});
+    if(completed&&!data?.completed){
+      await addPoints(mission.reward,`ミッション達成: ${mission.name}`);
+      await sendNotification(currentUserId,'mission',`🎯 ミッション達成！「${mission.name}」+${mission.reward}pt獲得`);
+      showToast(`🎯 ミッション達成！「${mission.name}」 +${mission.reward}pt`);
+    }
   }
 }
 
-async function applyAvatarColor() {
-  const { data } = await sb.from('profiles').select('display_name, avatar_color').eq('id', currentUserId).maybeSingle();
-  // 表示名があればアバター・掲示板・チャットに反映
-  const name = data?.display_name || currentUserEmail.split('@')[0];
-  document.getElementById('dash-avatar').textContent      = name[0]?.toUpperCase() || '?';
-  document.getElementById('dash-email-short').textContent = name;
-  if (data?.avatar_color) {
-    document.getElementById('dash-avatar').style.background = data.avatar_color;
-  }
+/* ═══════════════════════════════
+   ショップ
+   ═══════════════════════════════ */
+async function loadShop(){
+  const grid=document.getElementById('shop-grid');
+  grid.innerHTML='<div class="loading-msg">読み込み中…</div>';
+  const {data}=await sb.from('user_items').select('item_id').eq('user_id',currentUserId);
+  const owned=new Set((data||[]).map(d=>d.item_id));
+  grid.innerHTML=SHOP_ITEMS.map(item=>{
+    const isOwned=owned.has(item.id);
+    const canBuy=userPoints>=item.price&&!isOwned&&item.type!=='boost';
+    const boostUsed=item.type==='boost'&&owned.has(item.id+'_used');
+    return `<div class="shop-item ${isOwned&&item.type!=='boost'?'owned':''}">
+      <div class="shop-icon">${item.icon}</div>
+      <div class="shop-name">${item.name}</div>
+      <div class="shop-desc">${item.desc}</div>
+      <div class="shop-price">🪙 ${item.price}</div>
+      ${isOwned&&item.type!=='boost'
+        ? '<div class="owned-badge">✅ 所持済み</div>'
+        : `<button class="buy-btn" ${userPoints<item.price||boostUsed?'disabled':''} onclick="buyItem('${item.id}')">${userPoints<item.price?'ポイント不足':'購入'}</button>`}
+    </div>`;
+  }).join('');
+}
+async function buyItem(itemId){
+  const item=SHOP_ITEMS.find(i=>i.id===itemId); if(!item) return;
+  if(userPoints<item.price){showToast('⚠️ ポイントが不足しています');return;}
+  if(!confirm(`「${item.name}」を${item.price}ptで購入しますか？`)) return;
+  await addPoints(-item.price,`ショップ購入: ${item.name}`);
+  await sb.from('user_items').insert({user_id:currentUserId,item_id:itemId});
+  // 購入効果を適用
+  if(item.type==='title'){await sb.from('profiles').update({title:item.value}).eq('id',currentUserId); await refreshDashHeader();}
+  if(item.type==='emoji'){await sb.from('profiles').update({avatar_emoji:item.value}).eq('id',currentUserId); await refreshDashHeader();}
+  if(item.type==='boost'){await addPoints(item.value,`ポイントブースト（${item.name}）`); await sb.from('user_items').insert({user_id:currentUserId,item_id:itemId+'_used'}).catch(()=>{});}
+  showToast(`✅ 「${item.name}」を購入しました！`);
+  loadShop();
 }
 
-async function saveDisplayName() {
-  const val = document.getElementById('set-displayname').value.trim();
-  if (!val) return showToast('⚠️ 表示名を入力してください');
-  const { error } = await sb.from('profiles').update({ display_name: val }).eq('id', currentUserId);
-  if (error) return showToast('❌ 保存に失敗しました');
-  showToast('✅ 表示名を保存しました');
-  applyAvatarColor();
+/* ═══════════════════════════════
+   設定
+   ═══════════════════════════════ */
+function buildEmojiPicker(){
+  const picker=document.getElementById('emoji-picker'); if(!picker||picker.childElementCount) return;
+  picker.innerHTML=AVATAR_EMOJIS.map(e=>`<button type="button" class="ep-btn" data-emoji="${e}" onclick="selectEmoji('${e}')">${e}</button>`).join('');
+}
+async function loadSettings(){
+  const {data}=await sb.from('profiles').select('display_name,avatar_emoji,avatar_color').eq('id',currentUserId).maybeSingle();
+  if(data?.display_name) document.getElementById('set-displayname').value=data.display_name;
+  if(data?.avatar_color) document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('selected',s.dataset.color===data.avatar_color));
+  if(data?.avatar_emoji) document.querySelectorAll('.ep-btn').forEach(b=>b.classList.toggle('selected',b.dataset.emoji===data.avatar_emoji));
+}
+async function saveDisplayName(){
+  const val=document.getElementById('set-displayname').value.trim();
+  if(!val) return showToast('⚠️ 表示名を入力してください');
+  await sb.from('profiles').update({display_name:val}).eq('id',currentUserId);
+  showToast('✅ 表示名を保存しました'); refreshDashHeader();
+}
+async function selectEmoji(emoji){
+  document.querySelectorAll('.ep-btn').forEach(b=>b.classList.toggle('selected',b.dataset.emoji===emoji));
+  await sb.from('profiles').update({avatar_emoji:emoji}).eq('id',currentUserId);
+  refreshDashHeader(); showToast('✅ アバター絵文字を変更しました');
+}
+async function selectColor(el){
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected')); el.classList.add('selected');
+  await sb.from('profiles').update({avatar_color:el.dataset.color}).eq('id',currentUserId);
+  refreshDashHeader(); showToast('✅ カラーを変更しました');
+}
+async function changeEmail(){
+  const email=document.getElementById('set-email').value.trim(); if(!email) return showToast('⚠️ メールアドレスを入力してください');
+  const {error}=await sb.auth.updateUser({email}); if(error) return showToast('❌ '+te(error.message));
+  showToast('✅ 確認メールを送信しました'); document.getElementById('set-email').value='';
+}
+async function changePassword(e){
+  if(e) e.preventDefault();
+  const pw1=document.getElementById('set-pw1').value, pw2=document.getElementById('set-pw2').value;
+  if(!pw1||!pw2) return showToast('⚠️ パスワードを入力してください');
+  if(pw1!==pw2) return showToast('⚠️ パスワードが一致しません');
+  if(pw1.length<6) return showToast('⚠️ パスワードは6文字以上にしてください');
+  const {error}=await sb.auth.updateUser({password:pw1}); if(error) return showToast('❌ '+te(error.message));
+  showToast('✅ パスワードを変更しました'); document.getElementById('set-pw1').value=''; document.getElementById('set-pw2').value='';
+}
+async function deleteAccount(){
+  if(prompt('アカウントを完全に削除します。\n確認のため「削除する」と入力してください：')!=='削除する') return showToast('キャンセルしました');
+  for(const tbl of ['point_logs','board_likes','board_posts','chat_messages','direct_messages','notifications','user_missions','user_items','follows'])
+    await sb.from(tbl).delete().eq(['point_logs','board_posts','chat_messages','direct_messages','notifications','user_missions','user_items'].includes(tbl)?'user_id':'follower_id', currentUserId).catch(()=>{});
+  await sb.from('follows').delete().eq('following_id',currentUserId).catch(()=>{});
+  await sb.from('profiles').delete().eq('id',currentUserId).catch(()=>{});
+  const {error}=await sb.rpc('delete_own_account').catch(()=>({error:true}));
+  showToast('データを削除しました。サインアウトします…');
+  setTimeout(()=>sb.auth.signOut(),2000);
 }
 
-async function selectColor(el) {
-  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
-  el.classList.add('selected');
-  const color = el.dataset.color;
-  await sb.from('profiles').update({ avatar_color: color }).eq('id', currentUserId);
-  document.getElementById('dash-avatar').style.background = color;
-  showToast('✅ カラーを変更しました');
-}
-
-async function changeEmail() {
-  const email = document.getElementById('set-email').value.trim();
-  if (!email) return showToast('⚠️ 新しいメールアドレスを入力してください');
-  const { error } = await sb.auth.updateUser({ email });
-  if (error) return showToast('❌ ' + te(error.message));
-  showToast('✅ 確認メールを送信しました。両方のアドレスで確認してください');
-  document.getElementById('set-email').value = '';
-}
-
-async function changePassword(e) {
-  if (e) e.preventDefault();
-  const pw1 = document.getElementById('set-pw1').value;
-  const pw2 = document.getElementById('set-pw2').value;
-  if (!pw1 || !pw2)  return showToast('⚠️ パスワードを入力してください');
-  if (pw1 !== pw2)   return showToast('⚠️ パスワードが一致しません');
-  if (pw1.length < 6) return showToast('⚠️ パスワードは6文字以上にしてください');
-  const { error } = await sb.auth.updateUser({ password: pw1 });
-  if (error) return showToast('❌ ' + te(error.message));
-  showToast('✅ パスワードを変更しました');
-  document.getElementById('set-pw1').value = '';
-  document.getElementById('set-pw2').value = '';
-}
-
-async function deleteAccount() {
-  const confirmed = prompt('アカウントを完全に削除します。\n確認のため「削除する」と入力してください：');
-  if (confirmed !== '削除する') return showToast('キャンセルしました');
-  // データ削除（RLS上ユーザー自身のデータのみ）
-  await sb.from('point_logs').delete().eq('user_id', currentUserId);
-  await sb.from('board_likes').delete().eq('user_id', currentUserId);
-  await sb.from('board_posts').delete().eq('user_id', currentUserId);
-  await sb.from('chat_messages').delete().eq('user_id', currentUserId);
-  await sb.from('profiles').delete().eq('id', currentUserId);
-  // Supabase Authのユーザー削除はサーバー側RPC経由
-  const { error } = await sb.rpc('delete_own_account');
-  if (error) {
-    // RPCがなくてもサインアウトしてデータは消去済み
-    showToast('データを削除しました。管理者に認証アカウントの削除を依頼してください。');
-    setTimeout(() => sb.auth.signOut(), 2000);
-    return;
-  }
-  await sb.auth.signOut();
-}
-
-/* ════════════════════════════════════════
+/* ═══════════════════════════════
    🎮 バブルシューター
-   ════════════════════════════════════════ */
-const GW = 388, GH = 520;
-const GR = 19, GCW = GR*2+2, GRH = Math.round(Math.sqrt(3)*GR);
-const G_COLS_E = 9, G_COLS_O = 8;
-const G_TOP = 28, G_SHOOTER_Y = GH - 52, G_SPEED = 9;
-const G_DANGER_Y = GH - 108;
-const G_COLORS = ['#f25f5c','#7c6cfc','#56cfad','#f4a261','#4cc9f0','#e040fb'];
-const G_PLAY_COST = 10, G_PTS_BUBBLE = 10, G_PTS_FLOAT = 5, G_CLEAR_BONUS = 50;
-
-let gGrid=[], gBall=null, gAim={x:GW/2,y:G_SHOOTER_Y-60};
-let gShooterCI=0, gNextCI=0, gScore=0, gActive=false, gAnimId=null;
-let gInited=false;
-
-const gCanvas = () => document.getElementById('game-canvas');
-const gCtx    = () => gCanvas().getContext('2d');
-
-/* 初回ページ訪問時のみ描画開始 */
-function gInit() {
-  if (!gInited) {
-    gInited = true;
-    gRenderStatic();
-  }
-  gUpdateStartBtn();
+   ═══════════════════════════════ */
+const GW=388,GH=520,GR=19,GCW=GR*2+2,GRH=Math.round(Math.sqrt(3)*GR);
+const G_CE=9,G_CO=8,G_TOP=28,G_SY=GH-52,G_SPD=9,G_DY=GH-108;
+const G_COLORS=['#f25f5c','#7c6cfc','#56cfad','#f4a261','#4cc9f0','#e040fb'];
+let gGrid=[],gBall=null,gAim={x:GW/2,y:G_SY-60},gSCI=0,gNCI=0,gScore=0,gActive=false,gAnimId=null,gInited=false;
+const gCv=()=>document.getElementById('game-canvas');
+const gCtx=()=>gCv().getContext('2d');
+function gCols(r){return r%2===0?G_CE:G_CO;}
+function gCC(r,c){return{x:r%2===0?GR+1+c*GCW:GR+1+GCW/2+c*GCW,y:G_TOP+r*GRH+GR};}
+function gNbr(r,c){return r%2===0?[[r,c-1],[r,c+1],[r-1,c-1],[r-1,c],[r+1,c-1],[r+1,c]]:[[r,c-1],[r,c+1],[r-1,c],[r-1,c+1],[r+1,c],[r+1,c+1]];}
+function gIB(r,c){return r>=0&&c>=0&&c<gCols(r);}
+function gCnt(){let n=0;for(let r=0;r<gGrid.length;r++)for(let c=0;c<gCols(r);c++)if(gGrid[r]?.[c]>=0)n++;return n;}
+function gInit(){if(!gInited){gInited=true;gRender();}gUpdateStartBtn();}
+function gUpdateStartBtn(){const e=userPoints>=10;document.getElementById('gbtn-start').disabled=!e;document.getElementById('gbtn-retry').disabled=!e;document.getElementById('g-nopt').style.display=e?'none':'block';}
+async function gStartGame(){
+  gHideOvs();
+  if(userPoints<10){gUpdateStartBtn();return;}
+  await addPoints(-10,'バブルシューター（開始）');
+  await checkMissionProgress('game',1);
+  gScore=0;gActive=true;gGrid=[];
+  for(let r=0;r<7;r++){gGrid[r]=[];for(let c=0;c<gCols(r);c++)gGrid[r][c]=Math.floor(Math.random()*5);}
+  gSCI=Math.floor(Math.random()*G_COLORS.length);gNCI=Math.floor(Math.random()*G_COLORS.length);gBall=null;
+  gUpdateHUD();if(gAnimId)cancelAnimationFrame(gAnimId);gAnimId=requestAnimationFrame(gLoop);
 }
-
-function gColsInRow(r) { return r%2===0 ? G_COLS_E : G_COLS_O; }
-function gCellCenter(r,c) {
-  const x = r%2===0 ? GR+1+c*GCW : GR+1+GCW/2+c*GCW;
-  const y = G_TOP + r*GRH + GR;
-  return {x, y};
+async function gGameOver(){
+  gActive=false;const earned=Math.floor(gScore/3);
+  if(earned>0)await addPoints(earned,`バブルシューター スコア${gScore}`);
+  document.getElementById('g-final').textContent=gScore;document.getElementById('g-earn').textContent=`+${earned} pt 獲得！`;
+  document.getElementById('g-msg').textContent=gScore>200?'素晴らしい！':gScore>80?'惜しい！':'練習あるのみ！';
+  document.getElementById('gov-over').style.display='flex';gUpdateStartBtn();
 }
-function gNeighbors(r,c) {
-  return r%2===0
-    ? [[r,c-1],[r,c+1],[r-1,c-1],[r-1,c],[r+1,c-1],[r+1,c]]
-    : [[r,c-1],[r,c+1],[r-1,c],[r-1,c+1],[r+1,c],[r+1,c+1]];
+async function gStageClear(){
+  gActive=false;const earned=Math.floor(gScore/3)+50;
+  await addPoints(earned,`バブルシューター 全消し！スコア${gScore}`);
+  document.getElementById('g-cscore').textContent=gScore;document.getElementById('g-cearn').textContent=`+${earned} pt 獲得！`;
+  document.getElementById('gov-clear').style.display='flex';gUpdateStartBtn();
 }
-function gInBounds(r,c) { return r>=0 && c>=0 && c<gColsInRow(r); }
-function gCountBubbles() {
-  let n=0;
-  for(let r=0;r<gGrid.length;r++) for(let c=0;c<gColsInRow(r);c++) if(gGrid[r]?.[c]>=0) n++;
-  return n;
+function gShowStart(){gHideOvs();document.getElementById('gov-start').style.display='flex';gUpdateStartBtn();}
+function gHideOvs(){['gov-start','gov-over','gov-clear'].forEach(id=>document.getElementById(id).style.display='none');}
+function gUpdateHUD(){document.getElementById('g-hud-score').textContent=gScore;document.getElementById('g-hud-bub').textContent=gCnt();document.getElementById('g-hud-next').innerHTML=`<span style="color:${G_COLORS[gNCI]};font-size:20px">●</span>`;}
+function gShoot(){
+  if(!gActive||gBall)return;
+  const dx=gAim.x-GW/2,dy=gAim.y-G_SY,len=Math.hypot(dx,dy)||1;
+  if(dy>=-10)return;
+  gBall={x:GW/2,y:G_SY,vx:(dx/len)*G_SPD,vy:(dy/len)*G_SPD,ci:gSCI};
+  gSCI=gNCI;gNCI=Math.floor(Math.random()*G_COLORS.length);
 }
-
-/* ── ゲーム開始 ── */
-async function gStartGame() {
-  gHideOverlays();
-  // ポイント消費
-  const cur = userPoints;
-  if (cur < G_PLAY_COST) { gUpdateStartBtn(); return; }
-  const next = Math.max(0, cur - G_PLAY_COST);
-  if (sb && currentUserId) {
-    await sb.from('profiles').update({points:next}).eq('id',currentUserId);
-    await sb.from('point_logs').insert({user_id:currentUserId, amount:-G_PLAY_COST, reason:'バブルシューター（開始）'});
-    userPoints = next;
-    document.getElementById('pts-value').textContent = next.toLocaleString();
-  }
-  gUpdateStartBtn();
-
-  gScore=0; gActive=true;
-  gGrid=[];
-  const usedC = 5;
-  for(let r=0;r<7;r++){
-    gGrid[r]=[];
-    for(let c=0;c<gColsInRow(r);c++) gGrid[r][c]=Math.floor(Math.random()*usedC);
-  }
-  gShooterCI=Math.floor(Math.random()*G_COLORS.length);
-  gNextCI   =Math.floor(Math.random()*G_COLORS.length);
-  gBall=null;
-  gUpdateHUD();
-  if(gAnimId) cancelAnimationFrame(gAnimId);
-  gAnimId=requestAnimationFrame(gLoop);
-}
-
-function gUpdateStartBtn() {
-  const enough = userPoints >= G_PLAY_COST;
-  document.getElementById('gbtn-start').disabled = !enough;
-  document.getElementById('gbtn-retry').disabled = !enough;
-  document.getElementById('g-nopt').style.display = enough ? 'none' : 'block';
-}
-
-/* ── 終了 ── */
-async function gGameOver() {
-  gActive=false;
-  const earned = Math.floor(gScore/3);
-  if (sb && currentUserId && earned>0) {
-    const np = userPoints+earned;
-    await sb.from('profiles').update({points:np}).eq('id',currentUserId);
-    await sb.from('point_logs').insert({user_id:currentUserId,amount:earned,reason:`バブルシューター スコア${gScore}`});
-    userPoints=np;
-    document.getElementById('pts-value').textContent = np.toLocaleString();
-  }
-  document.getElementById('g-final').textContent = gScore;
-  document.getElementById('g-earn').textContent  = `+${earned} pt 獲得！`;
-  document.getElementById('g-msg').textContent   = gScore>200?'素晴らしい！':gScore>80?'惜しい！次は頑張ろう。':'練習あるのみ！';
-  document.getElementById('gov-over').style.display='flex';
-  gUpdateStartBtn();
-}
-
-async function gStageClear() {
-  gActive=false;
-  const earned = Math.floor(gScore/3)+G_CLEAR_BONUS;
-  if (sb && currentUserId) {
-    const np = userPoints+earned;
-    await sb.from('profiles').update({points:np}).eq('id',currentUserId);
-    await sb.from('point_logs').insert({user_id:currentUserId,amount:earned,reason:`バブルシューター 全消し！スコア${gScore}`});
-    userPoints=np;
-    document.getElementById('pts-value').textContent = np.toLocaleString();
-  }
-  document.getElementById('g-cscore').textContent = gScore;
-  document.getElementById('g-cearn').textContent  = `+${earned} pt 獲得！`;
-  document.getElementById('gov-clear').style.display='flex';
-  gUpdateStartBtn();
-}
-
-function gShowStart() { gHideOverlays(); document.getElementById('gov-start').style.display='flex'; gUpdateStartBtn(); }
-function gHideOverlays() { ['gov-start','gov-over','gov-clear'].forEach(id=>document.getElementById(id).style.display='none'); }
-
-function gUpdateHUD() {
-  document.getElementById('g-hud-score').textContent = gScore;
-  document.getElementById('g-hud-bub').textContent   = gCountBubbles();
-  document.getElementById('g-hud-next').innerHTML    = `<span style="color:${G_COLORS[gNextCI]};font-size:20px">●</span>`;
-}
-
-/* ── 射出 ── */
-function gShoot() {
-  if(!gActive||gBall) return;
-  const dx=gAim.x-GW/2, dy=gAim.y-G_SHOOTER_Y;
-  const len=Math.hypot(dx,dy)||1;
-  if(dy>=-10) return;
-  gBall={x:GW/2,y:G_SHOOTER_Y,vx:(dx/len)*G_SPEED,vy:(dy/len)*G_SPEED,ci:gShooterCI};
-  gShooterCI=gNextCI;
-  gNextCI=Math.floor(Math.random()*G_COLORS.length);
-}
-
-/* ── 物理 ── */
-function gStepBall() {
-  if(!gBall) return;
-  gBall.x+=gBall.vx; gBall.y+=gBall.vy;
-  if(gBall.x-GR<0)  {gBall.x=GR;   gBall.vx=Math.abs(gBall.vx);}
-  if(gBall.x+GR>GW) {gBall.x=GW-GR;gBall.vx=-Math.abs(gBall.vx);}
-  if(gBall.y-GR<G_TOP) {gSnapBall(gBall.x,G_TOP+GR);return;}
-  for(let r=0;r<gGrid.length;r++) for(let c=0;c<gColsInRow(r);c++) {
-    if(gGrid[r]?.[c]<0) continue;
-    const {x,y}=gCellCenter(r,c);
-    if(Math.hypot(gBall.x-x,gBall.y-y)<GR*1.85){gSnapBall(gBall.x,gBall.y);return;}
+function gStep(){
+  if(!gBall)return;
+  gBall.x+=gBall.vx;gBall.y+=gBall.vy;
+  if(gBall.x-GR<0){gBall.x=GR;gBall.vx=Math.abs(gBall.vx);}
+  if(gBall.x+GR>GW){gBall.x=GW-GR;gBall.vx=-Math.abs(gBall.vx);}
+  if(gBall.y-GR<G_TOP){gSnap(gBall.x,G_TOP+GR);return;}
+  for(let r=0;r<gGrid.length;r++)for(let c=0;c<gCols(r);c++){
+    if(gGrid[r]?.[c]<0)continue;
+    const {x,y}=gCC(r,c);if(Math.hypot(gBall.x-x,gBall.y-y)<GR*1.85){gSnap(gBall.x,gBall.y);return;}
   }
 }
-
-function gSnapBall(px,py) {
+function gSnap(px,py){
   let best=null,bestD=Infinity;
   const r0=Math.max(0,Math.floor((py-G_TOP)/GRH)-1);
   for(let r=r0;r<=r0+3;r++){
-    if(!gGrid[r]) gGrid[r]=new Array(gColsInRow(r)).fill(-1);
-    for(let c=0;c<gColsInRow(r);c++){
-      if(gGrid[r][c]>=0) continue;
-      const {x,y}=gCellCenter(r,c);
-      const d=Math.hypot(px-x,py-y);
+    if(!gGrid[r])gGrid[r]=new Array(gCols(r)).fill(-1);
+    for(let c=0;c<gCols(r);c++){
+      if(gGrid[r][c]>=0)continue;
+      const {x,y}=gCC(r,c);const d=Math.hypot(px-x,py-y);
       if(d<bestD){bestD=d;best={r,c};}
     }
   }
   if(!best){gBall=null;return;}
-  gGrid[best.r][best.c]=gBall.ci;
-  gBall=null;
-  const matched=gFindMatches(best.r,best.c);
+  gGrid[best.r][best.c]=gBall.ci;gBall=null;
+  const matched=gBFS(best.r,best.c);
   if(matched.length>=3){
-    matched.forEach(([r,c])=>{gGrid[r][c]=-1;});
-    gScore+=matched.length*G_PTS_BUBBLE;
-    const floaters=gFindFloating();
-    floaters.forEach(([r,c])=>{gGrid[r][c]=-1;});
-    gScore+=floaters.length*G_PTS_FLOAT;
-    showToast(`🫧 ${matched.length+floaters.length}個消去！ +${matched.length*G_PTS_BUBBLE+floaters.length*G_PTS_FLOAT}pt`);
+    matched.forEach(([r,c])=>{gGrid[r][c]=-1;});gScore+=matched.length*10;
+    const fl=gFloat();fl.forEach(([r,c])=>{gGrid[r][c]=-1;});gScore+=fl.length*5;
+    showToast(`🫧 ${matched.length+fl.length}個消去！`);
   }
-  while(gGrid.length&&gGrid[gGrid.length-1].every(v=>v<0)) gGrid.pop();
+  while(gGrid.length&&gGrid[gGrid.length-1].every(v=>v<0))gGrid.pop();
   gUpdateHUD();
-  if(gCountBubbles()===0){gStageClear();return;}
-  for(let r=0;r<gGrid.length;r++) for(let c=0;c<gColsInRow(r);c++){
-    if(gGrid[r]?.[c]<0) continue;
-    if(gCellCenter(r,c).y+GR>G_DANGER_Y){gGameOver();return;}
-  }
+  if(gCnt()===0){gStageClear();return;}
+  for(let r=0;r<gGrid.length;r++)for(let c=0;c<gCols(r);c++){if(gGrid[r]?.[c]<0)continue;if(gCC(r,c).y+GR>G_DY){gGameOver();return;}}
 }
-
-function gFindMatches(sr,sc) {
-  const color=gGrid[sr]?.[sc]; if(color==null||color<0) return [];
-  const vis=new Set(),queue=[[sr,sc]],res=[];
-  while(queue.length){
-    const [r,c]=queue.shift(); const k=r*200+c;
-    if(vis.has(k)) continue;
-    if(!gInBounds(r,c)||gGrid[r]?.[c]!==color) continue;
-    vis.add(k); res.push([r,c]);
-    gNeighbors(r,c).forEach(([nr,nc])=>queue.push([nr,nc]));
-  }
+function gBFS(sr,sc){
+  const color=gGrid[sr]?.[sc];if(color==null||color<0)return[];
+  const vis=new Set(),q=[[sr,sc]],res=[];
+  while(q.length){const[r,c]=q.shift();const k=r*200+c;if(vis.has(k))continue;if(!gIB(r,c)||gGrid[r]?.[c]!==color)continue;vis.add(k);res.push([r,c]);gNbr(r,c).forEach(([nr,nc])=>q.push([nr,nc]));}
   return res;
 }
-
-function gFindFloating() {
-  const vis=new Set(),queue=[];
-  if(gGrid[0]) for(let c=0;c<gColsInRow(0);c++) if(gGrid[0][c]>=0){queue.push([0,c]);vis.add(c);}
-  while(queue.length){
-    const [r,c]=queue.shift();
-    gNeighbors(r,c).forEach(([nr,nc])=>{
-      const k=nr*200+nc;
-      if(vis.has(k)||!gInBounds(nr,nc)||!gGrid[nr]||gGrid[nr][nc]<0) return;
-      vis.add(k); queue.push([nr,nc]);
-    });
-  }
-  const fl=[];
-  for(let r=0;r<gGrid.length;r++) for(let c=0;c<gColsInRow(r);c++)
-    if(gGrid[r]?.[c]>=0&&!vis.has(r*200+c)) fl.push([r,c]);
-  return fl;
+function gFloat(){
+  const vis=new Set(),q=[];
+  if(gGrid[0])for(let c=0;c<gCols(0);c++)if(gGrid[0][c]>=0){q.push([0,c]);vis.add(c);}
+  while(q.length){const[r,c]=q.shift();gNbr(r,c).forEach(([nr,nc])=>{const k=nr*200+nc;if(vis.has(k)||!gIB(nr,nc)||!gGrid[nr]||gGrid[nr][nc]<0)return;vis.add(k);q.push([nr,nc]);});}
+  const fl=[];for(let r=0;r<gGrid.length;r++)for(let c=0;c<gCols(r);c++)if(gGrid[r]?.[c]>=0&&!vis.has(r*200+c))fl.push([r,c]);return fl;
 }
-
-/* ── 描画 ── */
-function gLighten(hex,amt) {
-  const n=parseInt(hex.slice(1),16);
-  return `rgb(${Math.min(255,(n>>16)+amt)},${Math.min(255,((n>>8)&0xff)+amt)},${Math.min(255,(n&0xff)+amt)})`;
+function gLt(hex,a){const n=parseInt(hex.slice(1),16);return `rgb(${Math.min(255,(n>>16)+a)},${Math.min(255,((n>>8)&0xff)+a)},${Math.min(255,(n&0xff)+a)})`;}
+function gDB(ctx,x,y,ci,al=1){
+  const col=G_COLORS[ci];ctx.save();ctx.globalAlpha=al;ctx.shadowColor=col;ctx.shadowBlur=7;
+  const g=ctx.createRadialGradient(x-GR*.3,y-GR*.3,GR*.1,x,y,GR);g.addColorStop(0,gLt(col,40));g.addColorStop(1,col);
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,GR-1,0,Math.PI*2);ctx.fill();
+  ctx.shadowBlur=0;ctx.fillStyle='rgba(255,255,255,0.2)';ctx.beginPath();ctx.arc(x-GR*.28,y-GR*.28,GR*.32,0,Math.PI*2);ctx.fill();ctx.restore();
 }
-function gDrawBubble(ctx,x,y,ci,alpha=1) {
-  const col=G_COLORS[ci];
-  ctx.save(); ctx.globalAlpha=alpha;
-  ctx.shadowColor=col; ctx.shadowBlur=7;
-  const g=ctx.createRadialGradient(x-GR*.3,y-GR*.3,GR*.1,x,y,GR);
-  g.addColorStop(0,gLighten(col,40)); g.addColorStop(1,col);
-  ctx.fillStyle=g;
-  ctx.beginPath(); ctx.arc(x,y,GR-1,0,Math.PI*2); ctx.fill();
-  ctx.shadowBlur=0;
-  ctx.fillStyle='rgba(255,255,255,0.22)';
-  ctx.beginPath(); ctx.arc(x-GR*.28,y-GR*.28,GR*.33,0,Math.PI*2); ctx.fill();
-  ctx.restore();
-}
-function gRender() {
-  const c=gCanvas(), ctx=gCtx();
-  ctx.clearRect(0,0,GW,GH);
-  const bg=ctx.createLinearGradient(0,0,0,GH);
-  bg.addColorStop(0,'#0c0c14'); bg.addColorStop(1,'#0a0a10');
-  ctx.fillStyle=bg; ctx.fillRect(0,0,GW,GH);
-  // 危険ライン
-  ctx.strokeStyle='rgba(242,95,92,0.2)'; ctx.setLineDash([6,4]);
-  ctx.beginPath(); ctx.moveTo(0,G_DANGER_Y); ctx.lineTo(GW,G_DANGER_Y); ctx.stroke();
-  ctx.setLineDash([]);
-  // グリッド
-  for(let r=0;r<gGrid.length;r++) for(let c=0;c<gColsInRow(r);c++){
-    if(gGrid[r]?.[c]<0) continue;
-    const {x,y}=gCellCenter(r,c); gDrawBubble(ctx,x,y,gGrid[r][c]);
-  }
-  // ガイドライン
+function gRender(){
+  const ctx=gCtx();ctx.clearRect(0,0,GW,GH);
+  const bg=ctx.createLinearGradient(0,0,0,GH);bg.addColorStop(0,'#0c0c14');bg.addColorStop(1,'#0a0a10');ctx.fillStyle=bg;ctx.fillRect(0,0,GW,GH);
+  ctx.strokeStyle='rgba(242,95,92,0.18)';ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(0,G_DY);ctx.lineTo(GW,G_DY);ctx.stroke();ctx.setLineDash([]);
+  for(let r=0;r<gGrid.length;r++)for(let c=0;c<gCols(r);c++){if(gGrid[r]?.[c]<0)continue;const{x,y}=gCC(r,c);gDB(ctx,x,y,gGrid[r][c]);}
   if(gActive&&!gBall){
-    const dx=gAim.x-GW/2,dy=gAim.y-G_SHOOTER_Y,len=Math.hypot(dx,dy)||1;
-    if(dy<-10){
-      let lx=GW/2,ly=G_SHOOTER_Y,tvx=dx/len,tvy=dy/len;
-      ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.setLineDash([5,9]);
-      ctx.beginPath(); ctx.moveTo(lx,ly);
-      for(let i=0;i<14;i++){
-        lx+=tvx*28; ly+=tvy*28;
-        if(lx-GR<0){lx=GR;tvx=Math.abs(tvx);} if(lx+GR>GW){lx=GW-GR;tvx=-Math.abs(tvx);}
-        if(ly<G_TOP) break;
-        ctx.lineTo(lx,ly);
-      }
-      ctx.stroke(); ctx.setLineDash([]);
-    }
+    const dx=gAim.x-GW/2,dy=gAim.y-G_SY,len=Math.hypot(dx,dy)||1;
+    if(dy<-10){let lx=GW/2,ly=G_SY,tvx=dx/len,tvy=dy/len;ctx.strokeStyle='rgba(255,255,255,0.14)';ctx.setLineDash([5,9]);ctx.beginPath();ctx.moveTo(lx,ly);
+      for(let i=0;i<14;i++){lx+=tvx*28;ly+=tvy*28;if(lx-GR<0){lx=GR;tvx=Math.abs(tvx);}if(lx+GR>GW){lx=GW-GR;tvx=-Math.abs(tvx);}if(ly<G_TOP)break;ctx.lineTo(lx,ly);}ctx.stroke();ctx.setLineDash([]);}
   }
-  // シューター台座
-  ctx.fillStyle='rgba(124,108,252,0.12)';
-  ctx.beginPath(); ctx.arc(GW/2,G_SHOOTER_Y+10,26,0,Math.PI*2); ctx.fill();
-  gDrawBubble(ctx,GW/2,G_SHOOTER_Y,gShooterCI);
-  // NEXT
-  gDrawBubble(ctx,GW-34,G_SHOOTER_Y+8,gNextCI,0.65);
-  ctx.fillStyle='rgba(136,136,160,0.7)'; ctx.font='9px Inter,system-ui';
-  ctx.textAlign='center'; ctx.fillText('NEXT',GW-34,G_SHOOTER_Y+8+GR+10);
-  // 移動バブル
-  if(gBall) gDrawBubble(ctx,gBall.x,gBall.y,gBall.ci);
+  ctx.fillStyle='rgba(124,108,252,0.1)';ctx.beginPath();ctx.arc(GW/2,G_SY+10,24,0,Math.PI*2);ctx.fill();
+  gDB(ctx,GW/2,G_SY,gSCI);gDB(ctx,GW-32,G_SY+8,gNCI,0.65);
+  ctx.fillStyle='rgba(136,136,160,0.7)';ctx.font='9px Inter,system-ui';ctx.textAlign='center';ctx.fillText('NEXT',GW-32,G_SY+8+GR+10);
+  if(gBall)gDB(ctx,gBall.x,gBall.y,gBall.ci);
 }
-function gRenderStatic() { gRender(); }
-function gLoop() { if(!gActive) return; gStepBall(); gRender(); gAnimId=requestAnimationFrame(gLoop); }
-
-/* ── 入力 ── */
-function gGetPos(e) {
-  const rect=gCanvas().getBoundingClientRect();
-  const sx=GW/rect.width,sy=GH/rect.height;
-  if(e.touches) return {x:(e.touches[0].clientX-rect.left)*sx,y:(e.touches[0].clientY-rect.top)*sy};
-  return {x:(e.clientX-rect.left)*sx,y:(e.clientY-rect.top)*sy};
-}
+function gLoop(){if(!gActive)return;gStep();gRender();gAnimId=requestAnimationFrame(gLoop);}
+function gGP(e){const r=gCv().getBoundingClientRect(),sx=GW/r.width,sy=GH/r.height;
+  if(e.touches)return{x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};}
 document.addEventListener('DOMContentLoaded',()=>{
   const cv=document.getElementById('game-canvas');
-  cv.addEventListener('mousemove',e=>{ if(!gActive) return; const p=gGetPos(e); gAim.x=p.x;gAim.y=p.y; });
-  cv.addEventListener('click',    e=>{ if(!gActive) return; const p=gGetPos(e); gAim.x=p.x;gAim.y=p.y; gShoot(); });
-  cv.addEventListener('touchmove',e=>{ e.preventDefault(); if(!gActive) return; const p=gGetPos(e); gAim.x=p.x;gAim.y=p.y; },{passive:false});
-  cv.addEventListener('touchend', e=>{ e.preventDefault(); gShoot(); },{passive:false});
+  cv.addEventListener('mousemove',e=>{if(!gActive)return;const p=gGP(e);gAim.x=p.x;gAim.y=p.y;});
+  cv.addEventListener('click',e=>{if(!gActive)return;const p=gGP(e);gAim.x=p.x;gAim.y=p.y;gShoot();});
+  cv.addEventListener('touchmove',e=>{e.preventDefault();if(!gActive)return;const p=gGP(e);gAim.x=p.x;gAim.y=p.y;},{passive:false});
+  cv.addEventListener('touchend',e=>{e.preventDefault();gShoot();},{passive:false});
 });
 
-/* ════ ヘルパー ════ */
+/* ═══════════════════════════════
+   ヘルパー
+   ═══════════════════════════════ */
 let toastTimer;
-function showToast(text) {
-  const t = document.getElementById('toast');
-  t.textContent = text; t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
-}
-function showMsg(text, type) { const el = document.getElementById('msg'); el.textContent = text; el.className = `msg ${type} show`; }
-function clearMsg() { document.getElementById('msg').className = 'msg'; }
-function setLoading(id, loading, label) { const b = document.getElementById(id); b.disabled = loading; b.innerHTML = loading ? `<span class="spinner"></span>処理中…` : label; }
-function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>'); }
-function te(msg) {
-  if (msg.includes('Invalid login credentials'))  return 'メールアドレスまたはパスワードが正しくありません';
-  if (msg.includes('Email not confirmed'))         return 'メールアドレスが未確認です';
-  if (msg.includes('User already registered'))     return 'このメールアドレスはすでに登録されています';
-  if (msg.includes('Password should be'))          return 'パスワードは6文字以上にしてください';
-  if (msg.includes('Failed to fetch'))             return 'ネットワークエラーです。URLとキーを確認してください';
-  if (msg.includes('provider is not enabled'))     return 'GitHubログインが有効になっていません';
+function showToast(text){const t=document.getElementById('toast');t.textContent=text;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);}
+function showMsg(text,type){const el=document.getElementById('msg');el.textContent=text;el.className=`msg ${type} show`;}
+function clearMsg(){document.getElementById('msg').className='msg';}
+function setLoading(id,loading,label){const b=document.getElementById(id);b.disabled=loading;b.innerHTML=loading?`<span class="spinner"></span>処理中…`:label;}
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');}
+function te(msg){
+  if(msg.includes('Invalid login credentials')) return 'メールまたはパスワードが正しくありません';
+  if(msg.includes('Email not confirmed'))        return 'メールアドレスが未確認です';
+  if(msg.includes('User already registered'))    return 'このメールはすでに登録されています';
+  if(msg.includes('Password should be'))         return 'パスワードは6文字以上にしてください';
+  if(msg.includes('Failed to fetch'))            return 'ネットワークエラーです';
+  if(msg.includes('provider is not enabled'))    return 'GitHubログインが有効になっていません';
   return msg;
 }
 </script>
