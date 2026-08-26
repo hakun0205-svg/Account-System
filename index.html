@@ -510,6 +510,7 @@
     </div>
     <div class="sec">🔑 パスワード変更</div>
     <form onsubmit="changePassword(event)" novalidate>
+    <input type="email" autocomplete="username" value="" style="display:none" tabindex="-1" aria-hidden="true"/>
     <div class="setting-group">
       <div class="setting-row col">
         <div><div class="setting-label">新しいパスワード</div></div>
@@ -825,8 +826,14 @@ async function loadStats(){
    ═══════════════════════════════ */
 async function sendNotification(userId,type,message){
   if(!sb||!userId) return;
-  await sb.from('notifications').insert({user_id:userId,type,message});
-  if(userId===currentUserId) updateBadges();
+  if(userId===currentUserId){
+    // 自分への通知は直接INSERT
+    await sb.from('notifications').insert({user_id:userId,type,message});
+    updateBadges();
+  } else {
+    // 他ユーザーへの通知はRPC経由（SECURITY DEFINER関数が必要）
+    await sb.rpc('insert_notification',{target_user_id:userId,notif_type:type,notif_message:message}).catch(()=>{});
+  }
 }
 async function loadNotifications(){
   const list=document.getElementById('notif-list');
@@ -877,11 +884,17 @@ async function loadFriends(tab='all'){
     const {data}=await sb.from('profiles').select('id,display_name,email,avatar_emoji,avatar_color,title,points').neq('id',currentUserId).order('points',{ascending:false}).limit(30);
     users=data||[];
   } else if(tab==='following'){
-    const {data}=await sb.from('follows').select('following_id,profiles!follows_following_id_fkey(id,display_name,email,avatar_emoji,avatar_color,title,points)').eq('follower_id',currentUserId);
-    users=(data||[]).map(d=>d.profiles).filter(Boolean);
+    const {data:fdata}=await sb.from('follows').select('following_id').eq('follower_id',currentUserId);
+    const ids=(fdata||[]).map(f=>f.following_id);
+    if(!ids.length){list.innerHTML='<div class="empty-msg">フォロー中のユーザーがいません</div>';return;}
+    const {data}=await sb.from('profiles').select('id,display_name,email,avatar_emoji,avatar_color,title,points').in('id',ids);
+    users=data||[];
   } else {
-    const {data}=await sb.from('follows').select('follower_id,profiles!follows_follower_id_fkey(id,display_name,email,avatar_emoji,avatar_color,title,points)').eq('following_id',currentUserId);
-    users=(data||[]).map(d=>d.profiles).filter(Boolean);
+    const {data:fdata}=await sb.from('follows').select('follower_id').eq('following_id',currentUserId);
+    const ids=(fdata||[]).map(f=>f.follower_id);
+    if(!ids.length){list.innerHTML='<div class="empty-msg">フォロワーがいません</div>';return;}
+    const {data}=await sb.from('profiles').select('id,display_name,email,avatar_emoji,avatar_color,title,points').in('id',ids);
+    users=data||[];
   }
   if(!users.length){list.innerHTML='<div class="empty-msg">ユーザーが見つかりません</div>';return;}
   // フォロー中一覧を取得
@@ -895,7 +908,9 @@ async function loadFriends(tab='all'){
     const isFollowing=followingSet.has(p.id);
     return `<div class="friend-item">
       <div class="avatar" style="width:34px;height:34px;background:${avBg};font-size:${avFs};flex-shrink:0">${avCt}</div>
-      <div class="friend-info"><div class="friend-name">${name}${p.title?` <span style="color:var(--gold);font-size:11px">${p.title}</span>`:''}</div><div class="friend-pts">🪙 ${(p.points||0).toLocaleString()} pt</div></div>
+      <div class="friend-info">
+      <div class="friend-name">${name}${p.title?` <span style="color:var(--gold);font-size:11px">${p.title}</span>`:''}</div>
+      <div class="friend-pts">🪙 ${(p.points||0).toLocaleString()} pt</div></div>
       <button class="dm-quick-btn" onclick='openDM(${JSON.stringify({id:p.id,email:p.email||"",display_name:p.display_name||"",avatar_emoji:p.avatar_emoji||"",avatar_color:p.avatar_color||""})})'>💌</button>
       <button class="follow-btn ${isFollowing?'following':''}" onclick="toggleFollow('${p.id}',${isFollowing})">${isFollowing?'フォロー中':'フォロー'}</button>
     </div>`;
@@ -906,7 +921,6 @@ async function toggleFollow(targetId,isFollowing){
     await sb.from('follows').delete().eq('follower_id',currentUserId).eq('following_id',targetId);
   } else {
     await sb.from('follows').insert({follower_id:currentUserId,following_id:targetId});
-    // フォロー通知
     const {data:me}=await sb.from('profiles').select('display_name,email').eq('id',currentUserId).maybeSingle();
     const meName=me?.display_name||me?.email?.split('@')[0]||'誰か';
     await sendNotification(targetId,'follow',`${meName}さんがあなたをフォローしました`);
@@ -915,10 +929,8 @@ async function toggleFollow(targetId,isFollowing){
   loadFriends(currentFriendTab);
 }
 
-/* ═══════════════════════════════
-   DM
-   ═══════════════════════════════ */
-let dmPartner=null, dmChannel=null, dmMessages=[];
+/* ═══ DM ═══ */
+let dmPartner=null,dmChannel=null,dmMessages=[];
 async function loadDMList(){
   document.getElementById('dm-list-view').style.display='';
   document.getElementById('dm-chat-view').style.display='none';
@@ -929,10 +941,9 @@ async function loadDMList(){
   const convs={};
   data.forEach(msg=>{
     const pid=msg.from_id===currentUserId?msg.to_id:msg.from_id;
-    if(!convs[pid]) convs[pid]={lastMsg:msg,unread:0};
-    if(msg.to_id===currentUserId&&!msg.read_at) convs[pid].unread++;
+    if(!convs[pid])convs[pid]={lastMsg:msg,unread:0};
+    if(msg.to_id===currentUserId&&!msg.read_at)convs[pid].unread++;
   });
-  // パートナープロフィール取得
   const pids=Object.keys(convs);
   const {data:profs}=await sb.from('profiles').select('id,display_name,email,avatar_emoji,avatar_color').in('id',pids);
   const profMap={};(profs||[]).forEach(p=>profMap[p.id]=p);
@@ -949,12 +960,11 @@ async function loadDMList(){
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
         <div class="dm-conv-time">${time}</div>
         ${unread>0?`<div class="nav-badge" style="position:static">${unread}</div>`:''}
-      </div>
-    </div>`;
+      </div></div>`;
   }).join('');
 }
 async function openDM(partner){
-  if(typeof partner==='string') partner=JSON.parse(partner);
+  if(typeof partner==='string')partner=JSON.parse(partner);
   dmPartner=partner;
   document.getElementById('dm-list-view').style.display='none';
   document.getElementById('dm-chat-view').style.display='';
@@ -962,31 +972,24 @@ async function openDM(partner){
   const avEl=document.getElementById('dm-partner-av');
   avEl.textContent=partner.avatar_emoji||(partner.display_name||partner.email||'?')[0].toUpperCase();
   avEl.style.cssText=partner.avatar_emoji?'background:transparent;border:1px solid var(--border);font-size:16px':`background:${partner.avatar_color||'#7c6cfc'}`;
-  // 既読化
   await sb.from('direct_messages').update({read_at:new Date().toISOString()}).eq('from_id',partner.id).eq('to_id',currentUserId).is('read_at',null);
   updateBadges();
-  // メッセージ取得
   const {data}=await sb.from('direct_messages').select('*').or(`and(from_id.eq.${currentUserId},to_id.eq.${partner.id}),and(from_id.eq.${partner.id},to_id.eq.${currentUserId})`).order('created_at',{ascending:true}).limit(60);
-  dmMessages=data||[];
-  renderDMChat();
-  // リアルタイム購読
-  if(dmChannel) await sb.removeChannel(dmChannel);
+  dmMessages=data||[];renderDMChat();
+  if(dmChannel)await sb.removeChannel(dmChannel);
   dmChannel=sb.channel('dm-'+[currentUserId,partner.id].sort().join('-'))
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'direct_messages'},payload=>{
       const m=payload.new;
       if((m.from_id===currentUserId&&m.to_id===partner.id)||(m.from_id===partner.id&&m.to_id===currentUserId)){
-        dmMessages.push(m);
-        renderDMChat();
-        if(m.to_id===currentUserId) sb.from('direct_messages').update({read_at:new Date().toISOString()}).eq('id',m.id);
+        dmMessages.push(m);renderDMChat();
+        if(m.to_id===currentUserId)sb.from('direct_messages').update({read_at:new Date().toISOString()}).eq('id',m.id);
       }
     }).subscribe();
-  // ページがDMでなければ切り替え
-  if(!document.getElementById('page-dm').classList.contains('active')) switchPage('dm');
+  if(!document.getElementById('page-dm').classList.contains('active'))switchPage('dm');
 }
 function closeDM(){
   if(dmChannel){sb.removeChannel(dmChannel);dmChannel=null;}
-  dmPartner=null; dmMessages=[];
-  loadDMList();
+  dmPartner=null;dmMessages=[];loadDMList();
 }
 function renderDMChat(){
   const win=document.getElementById('dm-window');
@@ -994,35 +997,32 @@ function renderDMChat(){
   win.innerHTML=dmMessages.map(m=>{
     const mine=m.from_id===currentUserId;
     const time=new Date(m.created_at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
-    const av=mine?(document.getElementById('dash-avatar').textContent||'?'):(dmPartner?.avatar_emoji||(dmPartner?.display_name||dmPartner?.email||'?')[0].toUpperCase());
     const avBg=mine?'var(--accent)':(dmPartner?.avatar_emoji?'transparent;border:1px solid var(--border)':(dmPartner?.avatar_color||'#7c6cfc'));
+    const avCt=mine?(document.getElementById('dash-avatar').textContent||'?'):(dmPartner?.avatar_emoji||(dmPartner?.display_name||dmPartner?.email||'?')[0].toUpperCase());
     return `<div class="chat-msg ${mine?'mine':''}">
-      <div class="chat-av" style="background:${avBg};font-size:${(mine&&!document.getElementById('dash-avatar').style.fontSize)||(!mine&&!dmPartner?.avatar_emoji)?'':'13px'}">${av}</div>
+      <div class="chat-av" style="background:${avBg};font-size:13px">${avCt}</div>
       <div><div style="display:flex;align-items:flex-end;gap:4px;${mine?'flex-direction:row-reverse':''}"><div class="chat-bubble">${escHtml(m.content)}</div><div class="chat-ts">${time}</div></div></div>
     </div>`;
   }).join('');
   win.scrollTop=win.scrollHeight;
 }
 async function sendDM(){
-  if(!dmPartner) return;
-  const input=document.getElementById('dm-input'), btn=document.getElementById('dm-send');
-  const content=input.value.trim(); if(!content) return;
-  input.value=''; btn.disabled=true;
+  if(!dmPartner)return;
+  const input=document.getElementById('dm-input'),btn=document.getElementById('dm-send');
+  const content=input.value.trim();if(!content)return;
+  input.value='';btn.disabled=true;
   await sb.from('direct_messages').insert({from_id:currentUserId,to_id:dmPartner.id,content});
-  // 通知
   const {data:me}=await sb.from('profiles').select('display_name,email').eq('id',currentUserId).maybeSingle();
   const meName=me?.display_name||me?.email?.split('@')[0]||'誰か';
   await sendNotification(dmPartner.id,'dm',`${meName}さんからメッセージが届きました`);
-  btn.disabled=false; document.getElementById('dm-input').focus();
+  btn.disabled=false;document.getElementById('dm-input').focus();
 }
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&document.activeElement.id==='dm-input'&&!e.shiftKey){e.preventDefault();sendDM();}
   if(e.key==='Enter'&&document.activeElement.id==='chat-input'&&!e.shiftKey){e.preventDefault();sendMessage();}
 });
 
-/* ═══════════════════════════════
-   掲示板
-   ═══════════════════════════════ */
+/* ═══ 掲示板 ═══ */
 async function loadPosts(){
   document.getElementById('post-list').innerHTML='<div class="loading-msg">読み込み中…</div>';
   const {data}=await sb.from('board_posts').select('id,user_id,user_email,content,created_at,board_likes(user_id)').order('created_at',{ascending:false}).limit(30);
@@ -1034,7 +1034,7 @@ function renderPosts(posts){
   list.innerHTML=posts.map(p=>{
     const short=(p.user_email||'user').split('@')[0];
     const date=new Date(p.created_at).toLocaleString('ja-JP',{dateStyle:'short',timeStyle:'short'});
-    const likes=p.board_likes?.length??0, liked=p.board_likes?.some(l=>l.user_id===currentUserId);
+    const likes=p.board_likes?.length??0,liked=p.board_likes?.some(l=>l.user_id===currentUserId);
     const isMine=p.user_id===currentUserId;
     return `<div class="post-card"><div class="post-header"><div class="post-avatar">${short[0].toUpperCase()}</div><div><div class="post-author">${escHtml(short)}</div><div class="post-time">${date}</div></div></div>
       <div class="post-body">${escHtml(p.content)}</div>
@@ -1045,54 +1045,46 @@ function renderPosts(posts){
   }).join('');
 }
 async function submitPost(){
-  const ta=document.getElementById('post-input'), btn=document.getElementById('post-submit-btn');
-  const content=ta.value.trim(); if(!content) return;
-  btn.disabled=true; btn.textContent='投稿中…';
+  const ta=document.getElementById('post-input'),btn=document.getElementById('post-submit-btn');
+  const content=ta.value.trim();if(!content)return;
+  btn.disabled=true;btn.textContent='投稿中…';
   const {error}=await sb.from('board_posts').insert({user_id:currentUserId,user_email:currentUserEmail,content});
-  btn.disabled=false; btn.textContent='投稿する';
-  if(!error){ta.value=''; loadPosts(); await checkMissionProgress('post',1);}
+  btn.disabled=false;btn.textContent='投稿する';
+  if(!error){ta.value='';loadPosts();await checkMissionProgress('post',1);}
 }
 async function toggleLike(postId,isLiked){
-  if(isLiked){
-    await sb.from('board_likes').delete().eq('post_id',postId).eq('user_id',currentUserId);
-  } else {
+  if(isLiked){await sb.from('board_likes').delete().eq('post_id',postId).eq('user_id',currentUserId);}
+  else{
     await sb.from('board_likes').insert({post_id:postId,user_id:currentUserId});
     await checkMissionProgress('like',1);
-    // 投稿主に通知
     const {data:post}=await sb.from('board_posts').select('user_id,user_email').eq('id',postId).maybeSingle();
     if(post&&post.user_id!==currentUserId){
       const {data:me}=await sb.from('profiles').select('display_name,email').eq('id',currentUserId).maybeSingle();
-      const meName=me?.display_name||me?.email?.split('@')[0]||'誰か';
-      await sendNotification(post.user_id,'like',`${meName}さんがあなたの投稿にいいねしました`);
+      await sendNotification(post.user_id,'like',`${me?.display_name||me?.email?.split('@')[0]||'誰か'}さんがあなたの投稿にいいねしました`);
     }
   }
   loadPosts();
 }
 async function deletePost(postId){
-  if(!confirm('この投稿を削除しますか？')) return;
+  if(!confirm('この投稿を削除しますか？'))return;
   await sb.from('board_likes').delete().eq('post_id',postId);
   await sb.from('board_posts').delete().eq('id',postId).eq('user_id',currentUserId);
   loadPosts();
 }
 
-/* ═══════════════════════════════
-   グループチャット
-   ═══════════════════════════════ */
-let chatChannel=null, chatMessages=[];
+/* ═══ グループチャット ═══ */
+let chatChannel=null,chatMessages=[];
 async function initGroupChat(){
-  if(chatChannel) return;
+  if(chatChannel)return;
   const {data}=await sb.from('chat_messages').select('*').order('created_at',{ascending:true}).limit(50);
-  chatMessages=data||[]; renderGroupChat();
-  chatChannel=sb.channel('chat-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},payload=>{
-    chatMessages.push(payload.new); renderGroupChat();
-  }).subscribe();
+  chatMessages=data||[];renderGroupChat();
+  chatChannel=sb.channel('chat-room').on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},payload=>{chatMessages.push(payload.new);renderGroupChat();}).subscribe();
 }
 function renderGroupChat(){
   const win=document.getElementById('chat-window');
   if(!chatMessages.length){win.innerHTML='<div class="chat-empty">まだメッセージがありません</div>';return;}
   win.innerHTML=chatMessages.map(m=>{
-    const mine=m.user_id===currentUserId;
-    const short=(m.user_email||'user').split('@')[0];
+    const mine=m.user_id===currentUserId,short=(m.user_email||'user').split('@')[0];
     const time=new Date(m.created_at).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
     return `<div class="chat-msg ${mine?'mine':''}">
       ${!mine?`<div class="chat-av">${short[0].toUpperCase()}</div>`:''}
@@ -1105,50 +1097,37 @@ function renderGroupChat(){
   win.scrollTop=win.scrollHeight;
 }
 async function sendMessage(){
-  const input=document.getElementById('chat-input'), btn=document.getElementById('chat-send');
-  const content=input.value.trim(); if(!content) return;
-  input.value=''; btn.disabled=true;
+  const input=document.getElementById('chat-input'),btn=document.getElementById('chat-send');
+  const content=input.value.trim();if(!content)return;
+  input.value='';btn.disabled=true;
   await sb.from('chat_messages').insert({user_id:currentUserId,user_email:currentUserEmail,content});
-  btn.disabled=false; input.focus();
+  btn.disabled=false;input.focus();
   await checkMissionProgress('chat',1);
 }
 
-/* ═══════════════════════════════
-   ミッション
-   ═══════════════════════════════ */
+/* ═══ ミッション ═══ */
 async function loadMissions(){
   const list=document.getElementById('mission-list');
   list.innerHTML='<div class="loading-msg">読み込み中…</div>';
   const {data}=await sb.from('user_missions').select('*').eq('user_id',currentUserId);
-  const progMap={}; (data||[]).forEach(d=>progMap[d.mission_id]=d);
+  const progMap={};(data||[]).forEach(d=>progMap[d.mission_id]=d);
   list.innerHTML=MISSIONS.map(m=>{
-    const prog=progMap[m.id];
-    const cur=Math.min(prog?.progress??0, m.goal);
-    const done=prog?.completed||false;
-    const pct=Math.round((cur/m.goal)*100);
+    const prog=progMap[m.id],cur=Math.min(prog?.progress??0,m.goal),done=prog?.completed||false,pct=Math.round((cur/m.goal)*100);
     return `<div class="mission-card ${done?'completed':''}">
-      <div class="mission-top">
-        <div class="mission-icon">${m.icon}</div>
+      <div class="mission-top"><div class="mission-icon">${m.icon}</div>
         <div><div class="mission-name">${m.name}</div><div class="mission-desc">${m.desc}</div></div>
-        <div class="mission-reward">+${m.reward}pt</div>
-      </div>
-      ${done
-        ? '<div class="mission-done-badge">✅ 達成済み！</div>'
-        : `<div class="prog-bar-wrap"><div class="prog-bar-fill ${done?'done':''}" style="width:${pct}%"></div></div>
-           <div class="prog-label"><span>進捗</span><span>${cur}/${m.goal}</span></div>`}
+        <div class="mission-reward">+${m.reward}pt</div></div>
+      ${done?'<div class="mission-done-badge">✅ 達成済み！</div>':`<div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:${pct}%"></div></div><div class="prog-label"><span>進捗</span><span>${cur}/${m.goal}</span></div>`}
     </div>`;
   }).join('');
 }
 async function checkMissionProgress(type,increment){
-  if(!sb||!currentUserId) return;
-  const relevant=MISSIONS.filter(m=>m.type===type);
-  if(!relevant.length) return;
+  if(!sb||!currentUserId)return;
+  const relevant=MISSIONS.filter(m=>m.type===type);if(!relevant.length)return;
   for(const mission of relevant){
     const {data}=await sb.from('user_missions').select('progress,completed').eq('user_id',currentUserId).eq('mission_id',mission.id).maybeSingle();
-    if(data?.completed) continue;
-    let newProg;
-    if(mission.type==='pts_total'){newProg=userPoints;}
-    else{newProg=(data?.progress||0)+increment;}
+    if(data?.completed)continue;
+    const newProg=mission.type==='pts_total'?userPoints:(data?.progress||0)+increment;
     const completed=newProg>=mission.goal;
     await sb.from('user_missions').upsert({user_id:currentUserId,mission_id:mission.id,progress:newProg,completed,completed_at:completed?new Date().toISOString():null});
     if(completed&&!data?.completed){
@@ -1159,229 +1138,92 @@ async function checkMissionProgress(type,increment){
   }
 }
 
-/* ═══════════════════════════════
-   ショップ
-   ═══════════════════════════════ */
+/* ═══ ショップ ═══ */
 async function loadShop(){
   const grid=document.getElementById('shop-grid');
   grid.innerHTML='<div class="loading-msg">読み込み中…</div>';
   const {data}=await sb.from('user_items').select('item_id').eq('user_id',currentUserId);
   const owned=new Set((data||[]).map(d=>d.item_id));
   grid.innerHTML=SHOP_ITEMS.map(item=>{
-    const isOwned=owned.has(item.id);
-    const canBuy=userPoints>=item.price&&!isOwned&&item.type!=='boost';
-    const boostUsed=item.type==='boost'&&owned.has(item.id+'_used');
+    const isOwned=owned.has(item.id),noMoney=userPoints<item.price;
     return `<div class="shop-item ${isOwned&&item.type!=='boost'?'owned':''}">
       <div class="shop-icon">${item.icon}</div>
       <div class="shop-name">${item.name}</div>
       <div class="shop-desc">${item.desc}</div>
       <div class="shop-price">🪙 ${item.price}</div>
-      ${isOwned&&item.type!=='boost'
-        ? '<div class="owned-badge">✅ 所持済み</div>'
-        : `<button class="buy-btn" ${userPoints<item.price||boostUsed?'disabled':''} onclick="buyItem('${item.id}')">${userPoints<item.price?'ポイント不足':'購入'}</button>`}
+      ${isOwned&&item.type!=='boost'?'<div class="owned-badge">✅ 所持済み</div>':`<button class="buy-btn" ${noMoney?'disabled':''} onclick="buyItem('${item.id}')">${noMoney?'ポイント不足':'購入'}</button>`}
     </div>`;
   }).join('');
 }
 async function buyItem(itemId){
-  const item=SHOP_ITEMS.find(i=>i.id===itemId); if(!item) return;
+  const item=SHOP_ITEMS.find(i=>i.id===itemId);if(!item)return;
   if(userPoints<item.price){showToast('⚠️ ポイントが不足しています');return;}
-  if(!confirm(`「${item.name}」を${item.price}ptで購入しますか？`)) return;
+  if(!confirm(`「${item.name}」を${item.price}ptで購入しますか？`))return;
   await addPoints(-item.price,`ショップ購入: ${item.name}`);
-  await sb.from('user_items').insert({user_id:currentUserId,item_id:itemId});
-  // 購入効果を適用
-  if(item.type==='title'){await sb.from('profiles').update({title:item.value}).eq('id',currentUserId); await refreshDashHeader();}
-  if(item.type==='emoji'){await sb.from('profiles').update({avatar_emoji:item.value}).eq('id',currentUserId); await refreshDashHeader();}
-  if(item.type==='boost'){await addPoints(item.value,`ポイントブースト（${item.name}）`); await sb.from('user_items').insert({user_id:currentUserId,item_id:itemId+'_used'}).catch(()=>{});}
-  showToast(`✅ 「${item.name}」を購入しました！`);
-  loadShop();
+  await sb.from('user_items').insert({user_id:currentUserId,item_id:itemId}).catch(()=>{});
+  if(item.type==='title'){await sb.from('profiles').update({title:item.value}).eq('id',currentUserId);await refreshDashHeader();}
+  if(item.type==='emoji'){await sb.from('profiles').update({avatar_emoji:item.value}).eq('id',currentUserId);await refreshDashHeader();}
+  if(item.type==='boost'){await addPoints(item.value,`ポイントブースト（${item.name}）`);}
+  showToast(`✅ 「${item.name}」を購入しました！`);loadShop();
 }
 
-/* ═══════════════════════════════
-   設定
-   ═══════════════════════════════ */
+/* ═══ 設定 ═══ */
+const AVATAR_EMOJIS=['😊','😎','🤩','🥳','😏','🦊','🐧','🦋','🌟','⚡','🔥','💎','🎯','🚀','🎮','🐉','🦄','🤖','👻','🎃','🌈','🍀','🐱','🐼'];
 function buildEmojiPicker(){
-  const picker=document.getElementById('emoji-picker'); if(!picker||picker.childElementCount) return;
+  const picker=document.getElementById('emoji-picker');if(!picker||picker.childElementCount)return;
   picker.innerHTML=AVATAR_EMOJIS.map(e=>`<button type="button" class="ep-btn" data-emoji="${e}" onclick="selectEmoji('${e}')">${e}</button>`).join('');
 }
 async function loadSettings(){
+  buildEmojiPicker();
   const {data}=await sb.from('profiles').select('display_name,avatar_emoji,avatar_color').eq('id',currentUserId).maybeSingle();
-  if(data?.display_name) document.getElementById('set-displayname').value=data.display_name;
-  if(data?.avatar_color) document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('selected',s.dataset.color===data.avatar_color));
-  if(data?.avatar_emoji) document.querySelectorAll('.ep-btn').forEach(b=>b.classList.toggle('selected',b.dataset.emoji===data.avatar_emoji));
+  if(data?.display_name)document.getElementById('set-displayname').value=data.display_name;
+  if(data?.avatar_color)document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('selected',s.dataset.color===data.avatar_color));
+  if(data?.avatar_emoji)document.querySelectorAll('.ep-btn').forEach(b=>b.classList.toggle('selected',b.dataset.emoji===data.avatar_emoji));
 }
 async function saveDisplayName(){
   const val=document.getElementById('set-displayname').value.trim();
-  if(!val) return showToast('⚠️ 表示名を入力してください');
+  if(!val)return showToast('⚠️ 表示名を入力してください');
   await sb.from('profiles').update({display_name:val}).eq('id',currentUserId);
-  showToast('✅ 表示名を保存しました'); refreshDashHeader();
+  showToast('✅ 表示名を保存しました');refreshDashHeader();
 }
 async function selectEmoji(emoji){
   document.querySelectorAll('.ep-btn').forEach(b=>b.classList.toggle('selected',b.dataset.emoji===emoji));
   await sb.from('profiles').update({avatar_emoji:emoji}).eq('id',currentUserId);
-  refreshDashHeader(); showToast('✅ アバター絵文字を変更しました');
+  refreshDashHeader();showToast('✅ アバター絵文字を変更しました');
 }
 async function selectColor(el){
-  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected')); el.classList.add('selected');
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));el.classList.add('selected');
   await sb.from('profiles').update({avatar_color:el.dataset.color}).eq('id',currentUserId);
-  refreshDashHeader(); showToast('✅ カラーを変更しました');
+  refreshDashHeader();showToast('✅ カラーを変更しました');
 }
 async function changeEmail(){
-  const email=document.getElementById('set-email').value.trim(); if(!email) return showToast('⚠️ メールアドレスを入力してください');
-  const {error}=await sb.auth.updateUser({email}); if(error) return showToast('❌ '+te(error.message));
-  showToast('✅ 確認メールを送信しました'); document.getElementById('set-email').value='';
+  const email=document.getElementById('set-email').value.trim();if(!email)return showToast('⚠️ メールアドレスを入力してください');
+  const {error}=await sb.auth.updateUser({email});if(error)return showToast('❌ '+te(error.message));
+  showToast('✅ 確認メールを送信しました');document.getElementById('set-email').value='';
 }
 async function changePassword(e){
-  if(e) e.preventDefault();
-  const pw1=document.getElementById('set-pw1').value, pw2=document.getElementById('set-pw2').value;
-  if(!pw1||!pw2) return showToast('⚠️ パスワードを入力してください');
-  if(pw1!==pw2) return showToast('⚠️ パスワードが一致しません');
-  if(pw1.length<6) return showToast('⚠️ パスワードは6文字以上にしてください');
-  const {error}=await sb.auth.updateUser({password:pw1}); if(error) return showToast('❌ '+te(error.message));
-  showToast('✅ パスワードを変更しました'); document.getElementById('set-pw1').value=''; document.getElementById('set-pw2').value='';
+  if(e)e.preventDefault();
+  const pw1=document.getElementById('set-pw1').value,pw2=document.getElementById('set-pw2').value;
+  if(!pw1||!pw2)return showToast('⚠️ パスワードを入力してください');
+  if(pw1!==pw2)return showToast('⚠️ パスワードが一致しません');
+  if(pw1.length<6)return showToast('⚠️ パスワードは6文字以上にしてください');
+  const {error}=await sb.auth.updateUser({password:pw1});if(error)return showToast('❌ '+te(error.message));
+  showToast('✅ パスワードを変更しました');document.getElementById('set-pw1').value='';document.getElementById('set-pw2').value='';
 }
 async function deleteAccount(){
-  if(prompt('アカウントを完全に削除します。\n確認のため「削除する」と入力してください：')!=='削除する') return showToast('キャンセルしました');
-  for(const tbl of ['point_logs','board_likes','board_posts','chat_messages','direct_messages','notifications','user_missions','user_items','follows'])
-    await sb.from(tbl).delete().eq(['point_logs','board_posts','chat_messages','direct_messages','notifications','user_missions','user_items'].includes(tbl)?'user_id':'follower_id', currentUserId).catch(()=>{});
-  await sb.from('follows').delete().eq('following_id',currentUserId).catch(()=>{});
+  if(prompt('アカウントを完全に削除します。\n確認のため「削除する」と入力してください：')!=='削除する')return showToast('キャンセルしました');
+  for(const tbl of ['point_logs','board_posts','chat_messages','notifications','user_missions','user_items'])
+    await sb.from(tbl).delete().eq('user_id',currentUserId).catch(()=>{});
+  await sb.from('board_likes').delete().eq('user_id',currentUserId).catch(()=>{});
+  await sb.from('direct_messages').delete().or(`from_id.eq.${currentUserId},to_id.eq.${currentUserId}`).catch(()=>{});
+  await sb.from('follows').delete().or(`follower_id.eq.${currentUserId},following_id.eq.${currentUserId}`).catch(()=>{});
   await sb.from('profiles').delete().eq('id',currentUserId).catch(()=>{});
-  const {error}=await sb.rpc('delete_own_account').catch(()=>({error:true}));
+  await sb.rpc('delete_own_account').catch(()=>{});
   showToast('データを削除しました。サインアウトします…');
   setTimeout(()=>sb.auth.signOut(),2000);
 }
 
-/* ═══════════════════════════════
-   🎮 バブルシューター
-   ═══════════════════════════════ */
-const GW=388,GH=520,GR=19,GCW=GR*2+2,GRH=Math.round(Math.sqrt(3)*GR);
-const G_CE=9,G_CO=8,G_TOP=28,G_SY=GH-52,G_SPD=9,G_DY=GH-108;
-const G_COLORS=['#f25f5c','#7c6cfc','#56cfad','#f4a261','#4cc9f0','#e040fb'];
-let gGrid=[],gBall=null,gAim={x:GW/2,y:G_SY-60},gSCI=0,gNCI=0,gScore=0,gActive=false,gAnimId=null,gInited=false;
-const gCv=()=>document.getElementById('game-canvas');
-const gCtx=()=>gCv().getContext('2d');
-function gCols(r){return r%2===0?G_CE:G_CO;}
-function gCC(r,c){return{x:r%2===0?GR+1+c*GCW:GR+1+GCW/2+c*GCW,y:G_TOP+r*GRH+GR};}
-function gNbr(r,c){return r%2===0?[[r,c-1],[r,c+1],[r-1,c-1],[r-1,c],[r+1,c-1],[r+1,c]]:[[r,c-1],[r,c+1],[r-1,c],[r-1,c+1],[r+1,c],[r+1,c+1]];}
-function gIB(r,c){return r>=0&&c>=0&&c<gCols(r);}
-function gCnt(){let n=0;for(let r=0;r<gGrid.length;r++)for(let c=0;c<gCols(r);c++)if(gGrid[r]?.[c]>=0)n++;return n;}
-function gInit(){if(!gInited){gInited=true;gRender();}gUpdateStartBtn();}
-function gUpdateStartBtn(){const e=userPoints>=10;document.getElementById('gbtn-start').disabled=!e;document.getElementById('gbtn-retry').disabled=!e;document.getElementById('g-nopt').style.display=e?'none':'block';}
-async function gStartGame(){
-  gHideOvs();
-  if(userPoints<10){gUpdateStartBtn();return;}
-  await addPoints(-10,'バブルシューター（開始）');
-  await checkMissionProgress('game',1);
-  gScore=0;gActive=true;gGrid=[];
-  for(let r=0;r<7;r++){gGrid[r]=[];for(let c=0;c<gCols(r);c++)gGrid[r][c]=Math.floor(Math.random()*5);}
-  gSCI=Math.floor(Math.random()*G_COLORS.length);gNCI=Math.floor(Math.random()*G_COLORS.length);gBall=null;
-  gUpdateHUD();if(gAnimId)cancelAnimationFrame(gAnimId);gAnimId=requestAnimationFrame(gLoop);
-}
-async function gGameOver(){
-  gActive=false;const earned=Math.floor(gScore/3);
-  if(earned>0)await addPoints(earned,`バブルシューター スコア${gScore}`);
-  document.getElementById('g-final').textContent=gScore;document.getElementById('g-earn').textContent=`+${earned} pt 獲得！`;
-  document.getElementById('g-msg').textContent=gScore>200?'素晴らしい！':gScore>80?'惜しい！':'練習あるのみ！';
-  document.getElementById('gov-over').style.display='flex';gUpdateStartBtn();
-}
-async function gStageClear(){
-  gActive=false;const earned=Math.floor(gScore/3)+50;
-  await addPoints(earned,`バブルシューター 全消し！スコア${gScore}`);
-  document.getElementById('g-cscore').textContent=gScore;document.getElementById('g-cearn').textContent=`+${earned} pt 獲得！`;
-  document.getElementById('gov-clear').style.display='flex';gUpdateStartBtn();
-}
-function gShowStart(){gHideOvs();document.getElementById('gov-start').style.display='flex';gUpdateStartBtn();}
-function gHideOvs(){['gov-start','gov-over','gov-clear'].forEach(id=>document.getElementById(id).style.display='none');}
-function gUpdateHUD(){document.getElementById('g-hud-score').textContent=gScore;document.getElementById('g-hud-bub').textContent=gCnt();document.getElementById('g-hud-next').innerHTML=`<span style="color:${G_COLORS[gNCI]};font-size:20px">●</span>`;}
-function gShoot(){
-  if(!gActive||gBall)return;
-  const dx=gAim.x-GW/2,dy=gAim.y-G_SY,len=Math.hypot(dx,dy)||1;
-  if(dy>=-10)return;
-  gBall={x:GW/2,y:G_SY,vx:(dx/len)*G_SPD,vy:(dy/len)*G_SPD,ci:gSCI};
-  gSCI=gNCI;gNCI=Math.floor(Math.random()*G_COLORS.length);
-}
-function gStep(){
-  if(!gBall)return;
-  gBall.x+=gBall.vx;gBall.y+=gBall.vy;
-  if(gBall.x-GR<0){gBall.x=GR;gBall.vx=Math.abs(gBall.vx);}
-  if(gBall.x+GR>GW){gBall.x=GW-GR;gBall.vx=-Math.abs(gBall.vx);}
-  if(gBall.y-GR<G_TOP){gSnap(gBall.x,G_TOP+GR);return;}
-  for(let r=0;r<gGrid.length;r++)for(let c=0;c<gCols(r);c++){
-    if(gGrid[r]?.[c]<0)continue;
-    const {x,y}=gCC(r,c);if(Math.hypot(gBall.x-x,gBall.y-y)<GR*1.85){gSnap(gBall.x,gBall.y);return;}
-  }
-}
-function gSnap(px,py){
-  let best=null,bestD=Infinity;
-  const r0=Math.max(0,Math.floor((py-G_TOP)/GRH)-1);
-  for(let r=r0;r<=r0+3;r++){
-    if(!gGrid[r])gGrid[r]=new Array(gCols(r)).fill(-1);
-    for(let c=0;c<gCols(r);c++){
-      if(gGrid[r][c]>=0)continue;
-      const {x,y}=gCC(r,c);const d=Math.hypot(px-x,py-y);
-      if(d<bestD){bestD=d;best={r,c};}
-    }
-  }
-  if(!best){gBall=null;return;}
-  gGrid[best.r][best.c]=gBall.ci;gBall=null;
-  const matched=gBFS(best.r,best.c);
-  if(matched.length>=3){
-    matched.forEach(([r,c])=>{gGrid[r][c]=-1;});gScore+=matched.length*10;
-    const fl=gFloat();fl.forEach(([r,c])=>{gGrid[r][c]=-1;});gScore+=fl.length*5;
-    showToast(`🫧 ${matched.length+fl.length}個消去！`);
-  }
-  while(gGrid.length&&gGrid[gGrid.length-1].every(v=>v<0))gGrid.pop();
-  gUpdateHUD();
-  if(gCnt()===0){gStageClear();return;}
-  for(let r=0;r<gGrid.length;r++)for(let c=0;c<gCols(r);c++){if(gGrid[r]?.[c]<0)continue;if(gCC(r,c).y+GR>G_DY){gGameOver();return;}}
-}
-function gBFS(sr,sc){
-  const color=gGrid[sr]?.[sc];if(color==null||color<0)return[];
-  const vis=new Set(),q=[[sr,sc]],res=[];
-  while(q.length){const[r,c]=q.shift();const k=r*200+c;if(vis.has(k))continue;if(!gIB(r,c)||gGrid[r]?.[c]!==color)continue;vis.add(k);res.push([r,c]);gNbr(r,c).forEach(([nr,nc])=>q.push([nr,nc]));}
-  return res;
-}
-function gFloat(){
-  const vis=new Set(),q=[];
-  if(gGrid[0])for(let c=0;c<gCols(0);c++)if(gGrid[0][c]>=0){q.push([0,c]);vis.add(c);}
-  while(q.length){const[r,c]=q.shift();gNbr(r,c).forEach(([nr,nc])=>{const k=nr*200+nc;if(vis.has(k)||!gIB(nr,nc)||!gGrid[nr]||gGrid[nr][nc]<0)return;vis.add(k);q.push([nr,nc]);});}
-  const fl=[];for(let r=0;r<gGrid.length;r++)for(let c=0;c<gCols(r);c++)if(gGrid[r]?.[c]>=0&&!vis.has(r*200+c))fl.push([r,c]);return fl;
-}
-function gLt(hex,a){const n=parseInt(hex.slice(1),16);return `rgb(${Math.min(255,(n>>16)+a)},${Math.min(255,((n>>8)&0xff)+a)},${Math.min(255,(n&0xff)+a)})`;}
-function gDB(ctx,x,y,ci,al=1){
-  const col=G_COLORS[ci];ctx.save();ctx.globalAlpha=al;ctx.shadowColor=col;ctx.shadowBlur=7;
-  const g=ctx.createRadialGradient(x-GR*.3,y-GR*.3,GR*.1,x,y,GR);g.addColorStop(0,gLt(col,40));g.addColorStop(1,col);
-  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,GR-1,0,Math.PI*2);ctx.fill();
-  ctx.shadowBlur=0;ctx.fillStyle='rgba(255,255,255,0.2)';ctx.beginPath();ctx.arc(x-GR*.28,y-GR*.28,GR*.32,0,Math.PI*2);ctx.fill();ctx.restore();
-}
-function gRender(){
-  const ctx=gCtx();ctx.clearRect(0,0,GW,GH);
-  const bg=ctx.createLinearGradient(0,0,0,GH);bg.addColorStop(0,'#0c0c14');bg.addColorStop(1,'#0a0a10');ctx.fillStyle=bg;ctx.fillRect(0,0,GW,GH);
-  ctx.strokeStyle='rgba(242,95,92,0.18)';ctx.setLineDash([6,4]);ctx.beginPath();ctx.moveTo(0,G_DY);ctx.lineTo(GW,G_DY);ctx.stroke();ctx.setLineDash([]);
-  for(let r=0;r<gGrid.length;r++)for(let c=0;c<gCols(r);c++){if(gGrid[r]?.[c]<0)continue;const{x,y}=gCC(r,c);gDB(ctx,x,y,gGrid[r][c]);}
-  if(gActive&&!gBall){
-    const dx=gAim.x-GW/2,dy=gAim.y-G_SY,len=Math.hypot(dx,dy)||1;
-    if(dy<-10){let lx=GW/2,ly=G_SY,tvx=dx/len,tvy=dy/len;ctx.strokeStyle='rgba(255,255,255,0.14)';ctx.setLineDash([5,9]);ctx.beginPath();ctx.moveTo(lx,ly);
-      for(let i=0;i<14;i++){lx+=tvx*28;ly+=tvy*28;if(lx-GR<0){lx=GR;tvx=Math.abs(tvx);}if(lx+GR>GW){lx=GW-GR;tvx=-Math.abs(tvx);}if(ly<G_TOP)break;ctx.lineTo(lx,ly);}ctx.stroke();ctx.setLineDash([]);}
-  }
-  ctx.fillStyle='rgba(124,108,252,0.1)';ctx.beginPath();ctx.arc(GW/2,G_SY+10,24,0,Math.PI*2);ctx.fill();
-  gDB(ctx,GW/2,G_SY,gSCI);gDB(ctx,GW-32,G_SY+8,gNCI,0.65);
-  ctx.fillStyle='rgba(136,136,160,0.7)';ctx.font='9px Inter,system-ui';ctx.textAlign='center';ctx.fillText('NEXT',GW-32,G_SY+8+GR+10);
-  if(gBall)gDB(ctx,gBall.x,gBall.y,gBall.ci);
-}
-function gLoop(){if(!gActive)return;gStep();gRender();gAnimId=requestAnimationFrame(gLoop);}
-function gGP(e){const r=gCv().getBoundingClientRect(),sx=GW/r.width,sy=GH/r.height;
-  if(e.touches)return{x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy};return{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};}
-document.addEventListener('DOMContentLoaded',()=>{
-  const cv=document.getElementById('game-canvas');
-  cv.addEventListener('mousemove',e=>{if(!gActive)return;const p=gGP(e);gAim.x=p.x;gAim.y=p.y;});
-  cv.addEventListener('click',e=>{if(!gActive)return;const p=gGP(e);gAim.x=p.x;gAim.y=p.y;gShoot();});
-  cv.addEventListener('touchmove',e=>{e.preventDefault();if(!gActive)return;const p=gGP(e);gAim.x=p.x;gAim.y=p.y;},{passive:false});
-  cv.addEventListener('touchend',e=>{e.preventDefault();gShoot();},{passive:false});
-});
-
-/* ═══════════════════════════════
-   ヘルパー
-   ═══════════════════════════════ */
+/* ═══ ヘルパー ═══ */
 let toastTimer;
 function showToast(text){const t=document.getElementById('toast');t.textContent=text;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);}
 function showMsg(text,type){const el=document.getElementById('msg');el.textContent=text;el.className=`msg ${type} show`;}
@@ -1389,12 +1231,12 @@ function clearMsg(){document.getElementById('msg').className='msg';}
 function setLoading(id,loading,label){const b=document.getElementById(id);b.disabled=loading;b.innerHTML=loading?`<span class="spinner"></span>処理中…`:label;}
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'<br>');}
 function te(msg){
-  if(msg.includes('Invalid login credentials')) return 'メールまたはパスワードが正しくありません';
-  if(msg.includes('Email not confirmed'))        return 'メールアドレスが未確認です';
-  if(msg.includes('User already registered'))    return 'このメールはすでに登録されています';
-  if(msg.includes('Password should be'))         return 'パスワードは6文字以上にしてください';
-  if(msg.includes('Failed to fetch'))            return 'ネットワークエラーです';
-  if(msg.includes('provider is not enabled'))    return 'GitHubログインが有効になっていません';
+  if(msg.includes('Invalid login credentials'))return 'メールまたはパスワードが正しくありません';
+  if(msg.includes('Email not confirmed'))return 'メールアドレスが未確認です';
+  if(msg.includes('User already registered'))return 'このメールはすでに登録されています';
+  if(msg.includes('Password should be'))return 'パスワードは6文字以上にしてください';
+  if(msg.includes('Failed to fetch'))return 'ネットワークエラーです';
+  if(msg.includes('provider is not enabled'))return 'GitHubログインが有効になっていません';
   return msg;
 }
 </script>
