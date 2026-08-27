@@ -1179,7 +1179,7 @@ async function buyItem(itemId){
   if(userPoints<item.price){showToast('⚠️ ポイントが不足しています');return;}
   if(!confirm(`「${item.name}」を${item.price}ptで購入しますか？`))return;
   await addPoints(-item.price,`ショップ購入: ${item.name}`);
-  await sb.from('user_items').insert({user_id:currentUserId,item_id:itemId}).catch(()=>{});
+  try { await sb.from('user_items').insert({user_id:currentUserId,item_id:itemId}); } catch(e) {}
   if(item.type==='title'){await sb.from('profiles').update({title:item.value}).eq('id',currentUserId);await refreshDashHeader();}
   if(item.type==='emoji'){await sb.from('profiles').update({avatar_emoji:item.value}).eq('id',currentUserId);await refreshDashHeader();}
   if(item.type==='boost'){await addPoints(item.value,`ポイントブースト（${item.name}）`);}
@@ -1230,13 +1230,15 @@ async function changePassword(e){
 }
 async function deleteAccount(){
   if(prompt('アカウントを完全に削除します。\n確認のため「削除する」と入力してください：')!=='削除する')return showToast('キャンセルしました');
-  for(const tbl of ['point_logs','board_posts','chat_messages','notifications','user_missions','user_items'])
-    await sb.from(tbl).delete().eq('user_id',currentUserId).catch(()=>{});
-  await sb.from('board_likes').delete().eq('user_id',currentUserId).catch(()=>{});
-  await sb.from('direct_messages').delete().or(`from_id.eq.${currentUserId},to_id.eq.${currentUserId}`).catch(()=>{});
-  await sb.from('follows').delete().or(`follower_id.eq.${currentUserId},following_id.eq.${currentUserId}`).catch(()=>{});
-  await sb.from('profiles').delete().eq('id',currentUserId).catch(()=>{});
-  await sb.rpc('delete_own_account').catch(()=>{});
+  const tables=['point_logs','board_posts','chat_messages','notifications','user_missions','user_items'];
+  for(const tbl of tables){
+    try { await sb.from(tbl).delete().eq('user_id',currentUserId); } catch(e) {}
+  }
+  try { await sb.from('board_likes').delete().eq('user_id',currentUserId); } catch(e) {}
+  try { await sb.from('direct_messages').delete().or(`from_id.eq.${currentUserId},to_id.eq.${currentUserId}`); } catch(e) {}
+  try { await sb.from('follows').delete().or(`follower_id.eq.${currentUserId},following_id.eq.${currentUserId}`); } catch(e) {}
+  try { await sb.from('profiles').delete().eq('id',currentUserId); } catch(e) {}
+  try { await sb.rpc('delete_own_account'); } catch(e) {}
   showToast('データを削除しました。サインアウトします…');
   setTimeout(()=>sb.auth.signOut(),2000);
 }
