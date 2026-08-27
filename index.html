@@ -840,12 +840,12 @@ async function loadStats(){
 async function sendNotification(userId,type,message){
   if(!sb||!userId) return;
   if(userId===currentUserId){
-    // 自分への通知は直接INSERT
     await sb.from('notifications').insert({user_id:userId,type,message});
     updateBadges();
   } else {
-    // 他ユーザーへの通知はRPC経由（SECURITY DEFINER関数が必要）
-    await sb.rpc('insert_notification',{target_user_id:userId,notif_type:type,notif_message:message}).catch(()=>{});
+    try {
+      await sb.rpc('insert_notification',{target_user_id:userId,notif_type:type,notif_message:message});
+    } catch(e) { /* RPC未設定時は無視 */ }
   }
 }
 async function loadNotifications(){
@@ -933,11 +933,17 @@ async function toggleFollow(targetId,isFollowing){
   if(isFollowing){
     await sb.from('follows').delete().eq('follower_id',currentUserId).eq('following_id',targetId);
   } else {
-    await sb.from('follows').insert({follower_id:currentUserId,following_id:targetId});
-    const {data:me}=await sb.from('profiles').select('display_name,email').eq('id',currentUserId).maybeSingle();
-    const meName=me?.display_name||me?.email?.split('@')[0]||'誰か';
-    await sendNotification(targetId,'follow',`${meName}さんがあなたをフォローしました`);
-    await checkMissionProgress('follow',1);
+    // upsertで重複を無視（409エラー回避）
+    const {error}=await sb.from('follows').upsert(
+      {follower_id:currentUserId,following_id:targetId},
+      {onConflict:'follower_id,following_id',ignoreDuplicates:true}
+    );
+    if(!error){
+      const {data:me}=await sb.from('profiles').select('display_name,email').eq('id',currentUserId).maybeSingle();
+      const meName=me?.display_name||me?.email?.split('@')[0]||'誰か';
+      await sendNotification(targetId,'follow',`${meName}さんがあなたをフォローしました`);
+      await checkMissionProgress('follow',1);
+    }
   }
   loadFriends(currentFriendTab);
 }
