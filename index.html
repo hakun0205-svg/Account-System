@@ -58,7 +58,9 @@
     /* ── アバター ── */
     .avatar{width:26px;height:26px;background:var(--accent);border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
     /* ── ページナビ（横スクロール12タブ） ── */
-    .page-nav{display:flex;gap:2px;background:var(--bg);border-radius:9px;padding:3px;margin-bottom:18px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+    .page-nav-wrap{position:relative;margin-bottom:18px}
+    .page-nav-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:28px;background:linear-gradient(to right,transparent,var(--surface));pointer-events:none;border-radius:0 9px 9px 0}
+    .page-nav{display:flex;gap:2px;background:var(--bg);border-radius:9px;padding:3px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
     .page-nav::-webkit-scrollbar{display:none}
     .page-btn{position:relative;flex:0 0 auto;min-width:50px;padding:6px 4px;border:none;border-radius:7px;background:transparent;color:var(--muted);font-size:10px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;flex-direction:column;align-items:center;gap:2px;transition:background .15s,color .15s}
     .page-btn .pbi{font-size:15px;line-height:1}
@@ -69,7 +71,7 @@
     .tile{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
     .empty-msg{font-size:13px;color:var(--muted);text-align:center;padding:24px 0}
     .loading-msg{font-size:13px;color:var(--muted);text-align:center;padding:16px 0}
-    .page{display:none!important}.page.active{display:block!important;visibility:visible!important;opacity:1!important}
+    .page{display:none}.page.active{display:block}
     /* ── ホーム ── */
     .pts-hero{background:linear-gradient(135deg,#3d2fa0,#7c6cfc);border-radius:12px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
     .ph-label{font-size:10px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px}
@@ -215,7 +217,6 @@
     .buy-btn:disabled{opacity:.5;cursor:not-allowed;background:var(--border);color:var(--muted)}
     .owned-badge{font-size:11px;color:var(--success);font-weight:600}
     /* ── 設定 ── */
-    #page-settings.active{display:block!important;visibility:visible!important;opacity:1!important;height:auto!important;overflow:visible!important}
     .setting-group{background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:9px}
     .setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;gap:12px}
     .setting-row+.setting-row{border-top:1px solid var(--border)}
@@ -309,11 +310,16 @@
     <div class="logo" style="margin-bottom:0"><div class="logo-mark">M</div><span class="logo-name">MyApp</span></div>
     <div style="display:flex;gap:7px;align-items:center">
       <div class="pts-mini">🪙 <span id="pts-header">0</span></div>
-      <div class="user-chip"><div class="avatar" id="dash-avatar">?</div><span id="dash-email-short"></span></div>
-      <button type="button" id="settings-quick-btn" onclick="switchPage('settings')" title="設定を開く" aria-label="設定を開く" style="width:32px;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--muted);font-size:16px;cursor:pointer;display:grid;place-items:center;flex-shrink:0;transition:color .15s,background .15s" onmouseover="this.style.color='var(--text)';this.style.background='var(--border)'" onmouseout="this.style.color='var(--muted)';this.style.background='var(--bg)'">⚙️</button>
+      <div class="user-chip" onclick="switchPage('settings')" style="cursor:pointer;gap:6px" title="設定を開く">
+        <div class="avatar" id="dash-avatar">?</div>
+        <span id="dash-email-short"></span>
+        <span style="font-size:13px;color:var(--muted)">⚙️</span>
+      </div>
+      <button type="button" onclick="switchPage('settings')" title="設定" style="width:32px;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--muted);font-size:16px;cursor:pointer;display:grid;place-items:center;flex-shrink:0;transition:color .15s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">⚙️</button>
     </div>
   </div>
   <!-- 12タブナビ -->
+  <div class="page-nav-wrap">
   <div class="page-nav" id="page-nav">
     <button class="page-btn active" type="button" onclick="switchPage('home')"><span class="pbi">🏠</span>ホーム</button>
     <button class="page-btn" type="button" onclick="switchPage('ranking')"><span class="pbi">🏆</span>ランキング</button>
@@ -327,6 +333,7 @@
     <button class="page-btn" type="button" onclick="switchPage('shop')"><span class="pbi">🛒</span>ショップ</button>
     <button class="page-btn" type="button" onclick="switchPage('game')"><span class="pbi">🎮</span>ゲーム</button>
     <button class="page-btn" type="button" onclick="switchPage('settings')"><span class="pbi">⚙️</span>設定</button>
+  </div>
   </div>
 
   <!-- ── ホーム ── -->
@@ -706,43 +713,16 @@ async function handleLogout(){
    ═══════════════════════════════ */
 const PAGE_IDS=['home','ranking','stats','notif','friends','dm','board','chat','missions','shop','game','settings'];
 function switchPage(page){
-  const target=document.getElementById('page-'+page);
-  if(!target){console.warn('[MyApp] page not found:',page);return false;}
-
-  // 先に全ページを確実に閉じる
-  document.querySelectorAll('.page').forEach(p=>{
-    p.classList.remove('active');
-    p.setAttribute('aria-hidden','true');
-  });
-  // その後、選択ページだけを確実に表示
-  target.classList.add('active');
-  target.setAttribute('aria-hidden','false');
-  target.style.removeProperty('display');
-  target.style.removeProperty('visibility');
-  target.style.removeProperty('opacity');
-
-  // ナビのactive状態もID基準で同期
-  document.querySelectorAll('.page-btn').forEach((b,i)=>{
-    b.classList.toggle('active',PAGE_IDS[i]===page);
-  });
-
-  // 設定は横スクロール中でも確実に操作対象へ移動
-  if(page==='settings'){
-    requestAnimationFrame(()=>target.scrollIntoView({block:'nearest',behavior:'smooth'}));
-  }
-
+  const btns=[...document.querySelectorAll('.page-btn')];
+  btns.forEach((b,i)=>b.classList.toggle('active',PAGE_IDS[i]===page));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  // アクティブタブが見えるようにナビをスクロール
+  const activeBtn=btns.find((_,i)=>PAGE_IDS[i]===page);
+  if(activeBtn) activeBtn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
   const inits={ranking:loadRanking,stats:loadStats,notif:loadNotifications,friends:()=>loadFriends('all'),dm:loadDMList,board:loadPosts,chat:initGroupChat,missions:loadMissions,shop:loadShop,game:gInit,settings:loadSettings};
-  if(inits[page]){
-    try{
-      const result=inits[page]();
-      if(result && typeof result.catch==='function') result.catch(err=>console.warn('[MyApp] page init failed:',page,err));
-    }catch(err){
-      console.warn('[MyApp] page init failed:',page,err);
-    }
-  }
-  return true;
+  if(inits[page]) inits[page]();
 }
-
 
 /* ═══════════════════════════════
    ホーム（ポイント）
@@ -1390,8 +1370,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   cv.addEventListener('click',e=>{if(!gActive)return;const p=gGP(e);gAim.x=p.x;gAim.y=p.y;gShoot();});
   cv.addEventListener('touchmove',e=>{e.preventDefault();if(!gActive)return;const p=gGP(e);gAim.x=p.x;gAim.y=p.y;},{passive:false});
   cv.addEventListener('touchend',e=>{e.preventDefault();gShoot();},{passive:false});
-  const quickSettings=document.getElementById('settings-quick-btn');
-  if(quickSettings) quickSettings.addEventListener('click',()=>switchPage('settings'));
 });
 
 /* ═══ ヘルパー ═══ */
